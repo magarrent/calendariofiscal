@@ -2,6 +2,7 @@
 
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\CalendarSubscription;
+use App\Livewire\Settings\CompletionHistory;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
 use App\Livewire\Settings\TwoFactor;
@@ -18,6 +19,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('settings/password', Password::class)->name('user-password.edit');
     Route::livewire('settings/appearance', Appearance::class)->name('appearance.edit');
     Route::livewire('settings/calendar-subscription', CalendarSubscription::class)->name('calendar-subscription.edit');
+    Route::livewire('settings/completion-history', CompletionHistory::class)->name('completion-history.show');
 
     Route::livewire('settings/two-factor', TwoFactor::class)
         ->middleware(

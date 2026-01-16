@@ -110,6 +110,12 @@ new class extends Component
                 </div>
             @endif
 
+            {{-- Completion Status --}}
+            <div class="mb-6">
+                <flux:heading size="lg" class="mb-3">Estado de cumplimiento</flux:heading>
+                <livewire:calendar.model-completion :tax-model-id="$modelId" :year="$model->year" wire:key="completion-{{ $modelId }}-{{ $model->year }}" />
+            </div>
+
             {{-- Notification Reminders --}}
             @auth
                 <div class="mb-6">

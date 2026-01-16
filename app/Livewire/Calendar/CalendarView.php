@@ -34,6 +34,9 @@ class CalendarView extends Component
     #[Session]
     public ?string $proximity = null;
 
+    #[Session]
+    public bool $showOnlyIncomplete = false;
+
     public Carbon $currentDate;
 
     public int $year = 2026;
@@ -52,6 +55,18 @@ class CalendarView extends Component
         $this->dispatch('open-modal', 'model-detail');
     }
 
+    public function isModelCompleted(int $taxModelId): bool
+    {
+        if (! auth()->check()) {
+            return false;
+        }
+
+        return auth()->user()->hasCompletedModel(
+            \App\Models\TaxModel::find($taxModelId),
+            $this->year
+        );
+    }
+
     public function clearFilters(): void
     {
         $this->categories = [];
@@ -59,6 +74,7 @@ class CalendarView extends Component
         $this->companyTypes = [];
         $this->tags = [];
         $this->proximity = null;
+        $this->showOnlyIncomplete = false;
     }
 
     public function today(): void
@@ -155,6 +171,14 @@ class CalendarView extends Component
                 $applicable = is_array($taxModel->applicable_to) ? $taxModel->applicable_to : [];
                 $hasMatch = ! empty(array_intersect($this->companyTypes, $applicable));
                 if (! $hasMatch) {
+                    return false;
+                }
+            }
+
+            // Completion filter
+            if ($this->showOnlyIncomplete && auth()->check()) {
+                $isCompleted = auth()->user()->hasCompletedModel($taxModel, $this->year);
+                if ($isCompleted) {
                     return false;
                 }
             }

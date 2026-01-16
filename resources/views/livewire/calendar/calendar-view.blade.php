@@ -95,6 +95,19 @@
                                 <option value="next_90_days">Próximos 90 días</option>
                             </flux:select>
                         </div>
+
+                        @auth
+                            <flux:separator />
+
+                            {{-- Completion Filter --}}
+                            <div>
+                                <flux:heading size="sm" class="mb-2">Estado</flux:heading>
+                                <flux:checkbox
+                                    wire:model.live="showOnlyIncomplete"
+                                    label="Solo mostrar pendientes"
+                                />
+                            </div>
+                        @endauth
                     </div>
                 </div>
             </div>
@@ -147,14 +160,27 @@
                     {{-- Deadlines List --}}
                     <div class="space-y-4">
                         @forelse($deadlines as $deadline)
+                            @php
+                                $isCompleted = $this->isModelCompleted($deadline->taxModel->id);
+                            @endphp
                             <div
                                 wire:key="deadline-{{ $deadline->id }}"
                                 wire:click="showModel({{ $deadline->taxModel->id }})"
-                                class="cursor-pointer rounded-lg border border-gray-200 p-4 transition hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-800"
+                                class="cursor-pointer rounded-lg border p-4 transition {{ $isCompleted ? 'border-green-200 bg-green-50/50 hover:border-green-300 hover:bg-green-50 dark:border-green-800 dark:bg-green-900/20 dark:hover:border-green-700 dark:hover:bg-green-900/30' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-800' }}"
                             >
                                 <div class="flex items-start justify-between">
                                     <div class="flex-1">
-                                        <flux:heading size="sm">{{ $deadline->taxModel->name }}</flux:heading>
+                                        <div class="flex items-center gap-2">
+                                            <flux:heading size="sm" class="{{ $isCompleted ? 'text-green-900 dark:text-green-100' : '' }}">
+                                                {{ $deadline->taxModel->name }}
+                                            </flux:heading>
+                                            @if($isCompleted)
+                                                <flux:badge variant="success" size="sm">
+                                                    <flux:icon.check class="mr-1 size-3" />
+                                                    Completado
+                                                </flux:badge>
+                                            @endif
+                                        </div>
                                         <flux:text class="mt-1">
                                             <flux:badge variant="primary">{{ ucfirst($deadline->taxModel->category) }}</flux:badge>
                                             <flux:badge class="ml-2">{{ ucfirst($deadline->taxModel->frequency) }}</flux:badge>
@@ -164,7 +190,7 @@
                                         @endif
                                     </div>
                                     <div class="ml-4 text-right">
-                                        <flux:text class="font-semibold">
+                                        <flux:text class="font-semibold {{ $isCompleted ? 'text-green-900 dark:text-green-100' : '' }}">
                                             {{ $deadline->deadline_date->translatedFormat('d M Y') }}
                                         </flux:text>
                                         @if($deadline->deadline_time)
