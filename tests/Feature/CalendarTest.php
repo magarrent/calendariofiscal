@@ -32,44 +32,14 @@ test('calendar displays tax models and deadlines', function () {
     $response->assertSee('Calendario Fiscal 2026');
 });
 
-test('calendar supports month view', function () {
+test('calendar defaults to year view', function () {
     Livewire::test('calendar.calendar-view')
-        ->set('view', 'month')
-        ->assertSet('view', 'month')
+        ->assertSet('view', 'year')
         ->assertStatus(200);
 });
 
-test('calendar supports week view', function () {
+test('calendar only supports year view', function () {
     Livewire::test('calendar.calendar-view')
-        ->set('view', 'week')
-        ->assertSet('view', 'week')
-        ->assertStatus(200);
-});
-
-test('calendar supports day view', function () {
-    Livewire::test('calendar.calendar-view')
-        ->set('view', 'day')
-        ->assertSet('view', 'day')
-        ->assertStatus(200);
-});
-
-test('calendar supports list view', function () {
-    Livewire::test('calendar.calendar-view')
-        ->set('view', 'list')
-        ->assertSet('view', 'list')
-        ->assertStatus(200);
-});
-
-test('calendar supports timeline view', function () {
-    Livewire::test('calendar.calendar-view')
-        ->set('view', 'timeline')
-        ->assertSet('view', 'timeline')
-        ->assertStatus(200);
-});
-
-test('calendar supports year view', function () {
-    Livewire::test('calendar.calendar-view')
-        ->set('view', 'year')
         ->assertSet('view', 'year')
         ->assertStatus(200);
 });
@@ -92,12 +62,21 @@ test('calendar filters by frequency', function () {
         ->assertSet('frequencies', ['monthly']);
 });
 
-test('calendar navigation works', function () {
-    Livewire::test('calendar.calendar-view')
-        ->call('today')
-        ->call('nextPeriod')
-        ->call('previousPeriod')
-        ->assertStatus(200);
+test('calendar navigation works for year view', function () {
+    $component = Livewire::test('calendar.calendar-view');
+
+    $initialYear = $component->get('currentDate')->year;
+
+    $component->call('nextPeriod');
+    expect($component->get('currentDate')->year)->toBe($initialYear + 1);
+
+    $component->call('previousPeriod');
+    expect($component->get('currentDate')->year)->toBe($initialYear);
+
+    $component->call('today');
+    expect($component->get('currentDate')->year)->toBe(now()->year);
+
+    $component->assertStatus(200);
 });
 
 test('calendar clear filters works', function () {
@@ -270,4 +249,42 @@ test('calendar filters persist during session', function () {
 
     $component->assertSet('categories', ['iva'])
         ->assertSet('frequencies', ['monthly']);
+});
+
+test('calendar year view displays deadlines by month', function () {
+    $taxModel = TaxModel::factory()->create([
+        'model_number' => '303',
+        'name' => 'Modelo 303 - IVA',
+        'category' => 'iva',
+        'frequency' => 'monthly',
+        'year' => 2026,
+    ]);
+
+    // Create deadlines in different months
+    Deadline::factory()->create([
+        'tax_model_id' => $taxModel->id,
+        'deadline_date' => now()->startOfYear()->addMonths(0)->addDays(20),
+        'year' => 2026,
+    ]);
+
+    Deadline::factory()->create([
+        'tax_model_id' => $taxModel->id,
+        'deadline_date' => now()->startOfYear()->addMonths(2)->addDays(20),
+        'year' => 2026,
+    ]);
+
+    $response = $this->get('/');
+
+    $response->assertStatus(200);
+    $response->assertSee('303');
+});
+
+test('calendar year view is responsive', function () {
+    $response = $this->get('/');
+
+    $response->assertStatus(200);
+    // Check for responsive grid classes
+    $response->assertSee('sm:grid-cols-2');
+    $response->assertSee('lg:grid-cols-3');
+    $response->assertSee('xl:grid-cols-4');
 });

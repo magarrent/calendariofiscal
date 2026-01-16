@@ -17,7 +17,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CalendarView extends Component
 {
-    public string $view = 'month';
+    public string $view = 'year';
 
     #[Session]
     public array $categories = [];
@@ -84,24 +84,12 @@ class CalendarView extends Component
 
     public function nextPeriod(): void
     {
-        $this->currentDate = match ($this->view) {
-            'day' => $this->currentDate->addDay(),
-            'week' => $this->currentDate->addWeek(),
-            'month' => $this->currentDate->addMonth(),
-            'year' => $this->currentDate->addYear(),
-            default => $this->currentDate->addMonth(),
-        };
+        $this->currentDate = $this->currentDate->addYear();
     }
 
     public function previousPeriod(): void
     {
-        $this->currentDate = match ($this->view) {
-            'day' => $this->currentDate->subDay(),
-            'week' => $this->currentDate->subWeek(),
-            'month' => $this->currentDate->subMonth(),
-            'year' => $this->currentDate->subYear(),
-            default => $this->currentDate->subMonth(),
-        };
+        $this->currentDate = $this->currentDate->subYear();
     }
 
     public function getFilteredDeadlinesProperty(): Collection
@@ -110,24 +98,9 @@ class CalendarView extends Component
             ->with('taxModel')
             ->byYear($this->year);
 
-        // Apply date range based on view
-        $startDate = match ($this->view) {
-            'day' => $this->currentDate->copy()->startOfDay(),
-            'week' => $this->currentDate->copy()->startOfWeek(),
-            'month' => $this->currentDate->copy()->startOfMonth(),
-            'year' => $this->currentDate->copy()->startOfYear(),
-            'timeline', 'list' => now()->startOfYear(),
-            default => $this->currentDate->copy()->startOfMonth(),
-        };
-
-        $endDate = match ($this->view) {
-            'day' => $this->currentDate->copy()->endOfDay(),
-            'week' => $this->currentDate->copy()->endOfWeek(),
-            'month' => $this->currentDate->copy()->endOfMonth(),
-            'year' => $this->currentDate->copy()->endOfYear(),
-            'timeline', 'list' => now()->endOfYear(),
-            default => $this->currentDate->copy()->endOfMonth(),
-        };
+        // Apply date range for year view
+        $startDate = $this->currentDate->copy()->startOfYear();
+        $endDate = $this->currentDate->copy()->endOfYear();
 
         $query->byDateRange($startDate, $endDate);
 

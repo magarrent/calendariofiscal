@@ -94,15 +94,8 @@ it('allows guests to navigate between periods', function () {
         ->assertSuccessful();
 });
 
-it('allows guests to switch views', function () {
+it('defaults to year view for guests', function () {
     Livewire::test(CalendarView::class)
-        ->set('view', 'day')
-        ->assertSet('view', 'day')
-        ->set('view', 'week')
-        ->assertSet('view', 'week')
-        ->set('view', 'month')
-        ->assertSet('view', 'month')
-        ->set('view', 'year')
         ->assertSet('view', 'year');
 });
 
@@ -130,12 +123,10 @@ it('displays prominent registration CTA in filter section', function () {
 it('shows visual distinction between available and locked features', function () {
     $response = $this->get('/');
 
-    // View switcher is available (not locked)
-    $response->assertSee('Día');
-    $response->assertSee('Semana');
-    $response->assertSee('Mes');
+    // Calendar is available (year view is always visible)
+    $response->assertSee('Calendario Fiscal');
 
-    // Filters are locked
+    // Filters are locked for guests
     $response->assertSee('Desbloquea Filtros Avanzados');
 });
 

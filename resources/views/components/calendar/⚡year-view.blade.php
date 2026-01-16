@@ -46,6 +46,18 @@ new class extends Component
             default => 'bg-gray-500',
         };
     }
+
+    public function isModelCompleted(int $taxModelId): bool
+    {
+        if (! auth()->check()) {
+            return false;
+        }
+
+        return auth()->user()->hasCompletedModel(
+            \App\Models\TaxModel::find($taxModelId),
+            $this->currentDate->year
+        );
+    }
 };
 ?>
 
@@ -72,14 +84,27 @@ new class extends Component
                     </div>
                 @else
                     @foreach($monthDeadlines->take(5) as $deadline)
+                        @php
+                            $isCompleted = $this->isModelCompleted($deadline->taxModel->id);
+                        @endphp
                         <div
                             wire:click="$parent.showModel({{ $deadline->taxModel->id }})"
-                            class="cursor-pointer rounded p-2 text-xs transition hover:opacity-80 {{ $this->getCategoryColor($deadline->taxModel->category ?? 'otros') }} text-white"
+                            class="cursor-pointer rounded p-2 text-xs transition hover:opacity-80 {{ $isCompleted ? 'bg-green-600' : $this->getCategoryColor($deadline->taxModel->category ?? 'otros') }} text-white"
                         >
-                            <div class="flex items-center justify-between">
-                                <span class="font-semibold">{{ $deadline->taxModel->model_number }}</span>
+                            <div class="flex items-center justify-between gap-1">
+                                <div class="flex items-center gap-1">
+                                    <span class="font-semibold">{{ $deadline->taxModel->model_number }}</span>
+                                    @if($isCompleted)
+                                        <flux:icon.check class="size-3" />
+                                    @endif
+                                </div>
                                 <span>{{ $deadline->deadline_date->format('d') }}</span>
                             </div>
+                            @if($isCompleted)
+                                <div class="mt-0.5 text-xs opacity-90">
+                                    Completado
+                                </div>
+                            @endif
                         </div>
                     @endforeach
 

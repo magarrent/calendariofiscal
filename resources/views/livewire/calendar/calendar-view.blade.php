@@ -14,18 +14,7 @@
                         <flux:button href="{{ route('register') }}" variant="primary" size="sm">
                             Registrarse Gratis
                         </flux:button>
-                        <flux:separator vertical class="hidden h-6 sm:block" />
                     @endguest
-
-                    {{-- View Switcher --}}
-                    <div class="flex flex-wrap gap-2">
-                        <flux:button wire:click="$set('view', 'day')" :variant="$view === 'day' ? 'primary' : 'ghost'" size="sm">Día</flux:button>
-                        <flux:button wire:click="$set('view', 'week')" :variant="$view === 'week' ? 'primary' : 'ghost'" size="sm">Semana</flux:button>
-                        <flux:button wire:click="$set('view', 'month')" :variant="$view === 'month' ? 'primary' : 'ghost'" size="sm">Mes</flux:button>
-                        <flux:button wire:click="$set('view', 'list')" :variant="$view === 'list' ? 'primary' : 'ghost'" size="sm">Lista</flux:button>
-                        <flux:button wire:click="$set('view', 'timeline')" :variant="$view === 'timeline' ? 'primary' : 'ghost'" size="sm">Línea</flux:button>
-                        <flux:button wire:click="$set('view', 'year')" :variant="$view === 'year' ? 'primary' : 'ghost'" size="sm">Año</flux:button>
-                    </div>
                 </div>
             </div>
         </div>
@@ -171,17 +160,7 @@
 
                         <div class="text-center">
                             <flux:heading size="lg">
-                                @if($view === 'day')
-                                    {{ $currentDate->translatedFormat('d F Y') }}
-                                @elseif($view === 'week')
-                                    Semana {{ $currentDate->weekOfYear }} - {{ $currentDate->translatedFormat('F Y') }}
-                                @elseif($view === 'month')
-                                    {{ $currentDate->translatedFormat('F Y') }}
-                                @elseif($view === 'year')
-                                    {{ $currentDate->year }}
-                                @else
-                                    {{ $currentDate->translatedFormat('Y') }}
-                                @endif
+                                {{ $currentDate->year }}
                             </flux:heading>
                         </div>
 
@@ -236,62 +215,8 @@
                         @endif
                     </div>
 
-                    {{-- Deadlines List --}}
-                    <div class="space-y-4">
-                        @forelse($deadlines as $deadline)
-                            @php
-                                $isCompleted = $this->isModelCompleted($deadline->taxModel->id);
-                            @endphp
-                            <div
-                                wire:key="deadline-{{ $deadline->id }}"
-                                wire:click="showModel({{ $deadline->taxModel->id }})"
-                                class="cursor-pointer rounded-lg border p-4 transition {{ $isCompleted ? 'border-green-200 bg-green-50/50 hover:border-green-300 hover:bg-green-50 dark:border-green-800 dark:bg-green-900/20 dark:hover:border-green-700 dark:hover:bg-green-900/30' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-800' }}"
-                            >
-                                <div class="flex items-start justify-between">
-                                    <div class="flex-1">
-                                        <div class="flex items-center gap-2">
-                                            <flux:heading size="sm" class="{{ $isCompleted ? 'text-green-900 dark:text-green-100' : '' }}">
-                                                {{ $deadline->taxModel->name }}
-                                            </flux:heading>
-                                            @if($isCompleted)
-                                                <flux:badge variant="success" size="sm">
-                                                    <flux:icon.check class="mr-1 size-3" />
-                                                    Completado
-                                                </flux:badge>
-                                            @endif
-                                        </div>
-                                        <flux:text class="mt-1">
-                                            <flux:badge variant="primary">{{ ucfirst($deadline->taxModel->category) }}</flux:badge>
-                                            <flux:badge class="ml-2">{{ ucfirst($deadline->taxModel->frequency) }}</flux:badge>
-                                        </flux:text>
-                                        @if($deadline->notes)
-                                            <flux:text class="mt-2 text-sm">{{ $deadline->notes }}</flux:text>
-                                        @endif
-                                    </div>
-                                    <div class="ml-4 text-right">
-                                        <flux:text class="font-semibold {{ $isCompleted ? 'text-green-900 dark:text-green-100' : '' }}">
-                                            {{ $deadline->deadline_date->translatedFormat('d M Y') }}
-                                        </flux:text>
-                                        @if($deadline->deadline_time)
-                                            <flux:text class="text-sm">{{ $deadline->deadline_time->format('H:i') }}</flux:text>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        @empty
-                            <div class="py-12 text-center">
-                                <flux:text class="text-gray-500">No hay plazos para el período seleccionado</flux:text>
-                            </div>
-                        @endforelse
-                    </div>
-
-                    @if($deadlines->isNotEmpty())
-                        <div class="mt-6 text-center">
-                            <flux:text class="text-sm text-gray-500">
-                                Mostrando {{ $deadlines->count() }} plazo(s)
-                            </flux:text>
-                        </div>
-                    @endif
+                    {{-- Year View Calendar --}}
+                    <livewire:calendar.year-view :deadlines="$deadlines" :current-date="$currentDate" />
                 </div>
             </div>
         </div>
