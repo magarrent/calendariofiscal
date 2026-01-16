@@ -74,4 +74,9 @@ class TaxModel extends Model
 
         return $query;
     }
+
+    public function reminders(): HasMany
+    {
+        return $this->hasMany(TaxModelReminder::class);
+    }
 }

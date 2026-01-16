@@ -136,4 +136,14 @@ class User extends Authenticatable implements MustVerifyEmail
         $completion->completed_at = $completion->completed ? now() : null;
         $completion->save();
     }
+
+    public function taxModelReminders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(TaxModelReminder::class);
+    }
+
+    public function notificationLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(NotificationLog::class);
+    }
 }

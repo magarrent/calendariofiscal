@@ -110,6 +110,13 @@ new class extends Component
                 </div>
             @endif
 
+            {{-- Notification Reminders --}}
+            @auth
+                <div class="mb-6">
+                    <livewire:notifications.manage-reminders :tax-model-id="$modelId" wire:key="reminders-{{ $modelId }}" />
+                </div>
+            @endauth
+
             {{-- Who must file --}}
             @if($model->applicable_to && is_array($model->applicable_to) && count($model->applicable_to) > 0)
                 <div class="mb-6">
