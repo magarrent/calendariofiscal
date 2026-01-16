@@ -1,0 +1,164 @@
+{
+  "name": "Product Requirements Document",
+  "description": "**Version:** 1.0 **Date:** 2026-01-16 **Product Owner:** [To be assigned] **Status:** Draft",
+  "branchName": "feature/product-requirements-document",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "View Tax Calendar",
+      "description": "View Tax Calendar",
+      "acceptanceCriteria": [
+        "Calendar displays all AEAT models and deadlines for 2026",
+        "Multiple view modes available: Month, Week, Day, List/Agenda, Timeline, Year Overview",
+        "Calendar is accessible without login",
+        "Mobile-responsive interface with touch gestures",
+        "Spanish language UI"
+      ],
+      "priority": 1,
+      "passes": true,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-002",
+      "title": "Filter Tax Models",
+      "description": "Filter Tax Models",
+      "acceptanceCriteria": [
+        "Filter by model type (IVA, IRPF, Retenciones, etc.)",
+        "Filter by frequency (monthly, quarterly, annual)",
+        "Filter by company type (autónomo, PYME, large corporation)",
+        "Filter by custom tags",
+        "Filter by deadline proximity (next 7 days, 30 days, etc.)",
+        "Multiple filters can be applied simultaneously",
+        "Filters persist during session",
+        "Clear/reset all filters option available"
+      ],
+      "priority": 2,
+      "passes": true,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-003",
+      "title": "View Model Details",
+      "description": "View Model Details",
+      "acceptanceCriteria": [
+        "Standard view displays: model number, name, deadline, description, who must file",
+        "Detailed view toggle available showing: filing instructions, penalties, official AEAT links",
+        "Smooth transition between standard and detailed views",
+        "Mobile-optimized detail modal/page"
+      ],
+      "priority": 3,
+      "passes": false,
+      "labels": [],
+      "dependsOn": []
+    },
+    {
+      "id": "US-004",
+      "title": "Export Calendar",
+      "description": "Export Calendar",
+      "acceptanceCriteria": [
+        "Export to Excel/CSV format (filtered results)",
+        "Export to iCal/ICS format (filtered results)",
+        "Exports reflect currently applied filters",
+        "Downloaded files are properly named with date stamps",
+        "CSV includes all relevant model data fields"
+      ],
+      "priority": 4,
+      "passes": false,
+      "labels": [],
+      "dependsOn": []
+    },
+    {
+      "id": "US-005",
+      "title": "User Registration",
+      "description": "User Registration",
+      "acceptanceCriteria": [
+        "Simple email + password registration",
+        "Email verification required",
+        "Password strength requirements enforced",
+        "Terms of service acceptance",
+        "Privacy policy acceptance"
+      ],
+      "priority": 4,
+      "passes": false,
+      "labels": [],
+      "dependsOn": []
+    },
+    {
+      "id": "US-006",
+      "title": "Manage User Profile",
+      "description": "Manage User Profile",
+      "acceptanceCriteria": [
+        "Edit email preferences (notification frequency, types)",
+        "Mark favorite models (quick access)",
+        "Set company profile (type: autónomo/PYME/large corp, fiscal obligations)",
+        "Add personal deadlines (custom entries)",
+        "Track completion status per model",
+        "Add notes per model (personal reminders, filing numbers, etc.)",
+        "Export/delete all personal data (GDPR compliance)"
+      ],
+      "priority": 4,
+      "passes": false,
+      "labels": [],
+      "dependsOn": []
+    },
+    {
+      "id": "US-007",
+      "title": "Set Custom Notifications",
+      "description": "Set Custom Notifications",
+      "acceptanceCriteria": [
+        "Set multiple reminders per model (e.g., 30, 15, 7, 1 day before)",
+        "Configure recurring patterns for monthly/quarterly models",
+        "Email notifications sent at configured times",
+        "Notification preview/test functionality",
+        "Disable/enable notifications per model",
+        "Bulk notification settings for model categories",
+        "Notification history/log accessible"
+      ],
+      "priority": 4,
+      "passes": false,
+      "labels": [],
+      "dependsOn": []
+    },
+    {
+      "id": "US-008",
+      "title": "Subscribe to Calendar",
+      "description": "Subscribe to Calendar",
+      "acceptanceCriteria": [
+        "Generate unique iCal/ICS subscription URL per user",
+        "Subscription URL reflects user's favorite models and company profile",
+        "Compatible with Google Calendar, Outlook, Apple Calendar",
+        "Calendar updates automatically when data changes",
+        "Option to regenerate subscription URL (security)"
+      ],
+      "priority": 4,
+      "passes": false,
+      "labels": [],
+      "dependsOn": []
+    },
+    {
+      "id": "US-009",
+      "title": "Track Completion",
+      "description": "Track Completion",
+      "acceptanceCriteria": [
+        "Checkbox/toggle to mark model as completed",
+        "Completed models visually distinguished in calendar",
+        "Completion history viewable",
+        "Filter to show only incomplete obligations",
+        "Option to undo completion marking"
+      ],
+      "priority": 4,
+      "passes": false,
+      "labels": [],
+      "dependsOn": []
+    }
+  ],
+  "metadata": {
+    "createdAt": "2026-01-16T14:27:38.706Z",
+    "version": "1.0.0",
+    "updatedAt": "2026-01-16T14:44:01.479Z"
+  }
+}

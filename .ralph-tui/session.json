@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "sessionId": "d1b085d7-899a-4a70-a6bb-da8ee67715b0",
+  "status": "running",
+  "startedAt": "2026-01-16T14:35:56.108Z",
+  "updatedAt": "2026-01-16T14:44:01.495Z",
+  "currentIteration": 2,
+  "maxIterations": 10,
+  "tasksCompleted": 2,
+  "isPaused": false,
+  "agentPlugin": "claude",
+  "trackerState": {
+    "plugin": "json",
+    "prdPath": "/Users/marc/Documents/projects/calendariofiscal/prd.json",
+    "totalTasks": 9,
+    "tasks": [
+      {
+        "id": "US-001",
+        "title": "View Tax Calendar",
+        "status": "completed",
+        "completedInSession": true
+      },
+      {
+        "id": "US-002",
+        "title": "Filter Tax Models",
+        "status": "completed",
+        "completedInSession": true
+      },
+      {
+        "id": "US-003",
+        "title": "View Model Details",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-004",
+        "title": "Export Calendar",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-005",
+        "title": "User Registration",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-006",
+        "title": "Manage User Profile",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-007",
+        "title": "Set Custom Notifications",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-008",
+        "title": "Subscribe to Calendar",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-009",
+        "title": "Track Completion",
+        "status": "open",
+        "completedInSession": false
+      }
+    ]
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "status": "completed",
+      "taskId": "US-001",
+      "taskTitle": "View Tax Calendar",
+      "taskCompleted": true,
+      "durationMs": 257589,
+      "startedAt": "2026-01-16T14:36:02.441Z",
+      "endedAt": "2026-01-16T14:40:20.030Z"
+    },
+    {
+      "iteration": 2,
+      "status": "completed",
+      "taskId": "US-002",
+      "taskTitle": "Filter Tax Models",
+      "taskCompleted": true,
+      "durationMs": 219421,
+      "startedAt": "2026-01-16T14:40:21.044Z",
+      "endedAt": "2026-01-16T14:44:00.465Z"
+    }
+  ],
+  "skippedTaskIds": [],
+  "cwd": "/Users/marc/Documents/projects/calendariofiscal",
+  "activeTaskIds": [
+    "US-003"
+  ],
+  "subagentPanelVisible": false
+}
