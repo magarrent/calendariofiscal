@@ -3,9 +3,12 @@
 use App\Exports\DeadlinesExport;
 use App\Models\Deadline;
 use App\Models\TaxModel;
+use App\Models\User;
 use Livewire\Livewire;
 
 test('calendar exports to csv with filtered results', function () {
+    $user = User::factory()->create();
+
     $taxModel = TaxModel::factory()->create([
         'model_number' => '303',
         'name' => 'Modelo 303 - IVA',
@@ -20,13 +23,19 @@ test('calendar exports to csv with filtered results', function () {
         'year' => 2026,
     ]);
 
-    $response = Livewire::test('calendar.calendar-view')
+    $response = $this->actingAs($user)
+        ->get('/');
+
+    $response = Livewire::actingAs($user)
+        ->test('calendar.calendar-view')
         ->call('exportCsv');
 
     $response->assertStatus(200);
 });
 
 test('calendar exports to excel with filtered results', function () {
+    $user = User::factory()->create();
+
     $taxModel = TaxModel::factory()->create([
         'model_number' => '130',
         'name' => 'Modelo 130 - IRPF',
@@ -41,13 +50,16 @@ test('calendar exports to excel with filtered results', function () {
         'year' => 2026,
     ]);
 
-    $response = Livewire::test('calendar.calendar-view')
+    $response = Livewire::actingAs($user)
+        ->test('calendar.calendar-view')
         ->call('exportExcel');
 
     $response->assertStatus(200);
 });
 
 test('calendar exports to ical with filtered results', function () {
+    $user = User::factory()->create();
+
     $taxModel = TaxModel::factory()->create([
         'model_number' => '303',
         'name' => 'Modelo 303 - IVA',
@@ -65,7 +77,8 @@ test('calendar exports to ical with filtered results', function () {
         'year' => 2026,
     ]);
 
-    $response = Livewire::test('calendar.calendar-view')
+    $response = Livewire::actingAs($user)
+        ->test('calendar.calendar-view')
         ->call('exportIcal');
 
     $response->assertStatus(200);
@@ -120,6 +133,8 @@ test('csv export has correct spanish headers', function () {
 });
 
 test('export reflects currently applied category filter', function () {
+    $user = User::factory()->create();
+
     $taxModel1 = TaxModel::factory()->create([
         'category' => 'iva',
         'year' => 2026,
@@ -142,7 +157,8 @@ test('export reflects currently applied category filter', function () {
         'year' => 2026,
     ]);
 
-    $component = Livewire::test('calendar.calendar-view')
+    $component = Livewire::actingAs($user)
+        ->test('calendar.calendar-view')
         ->set('categories', ['iva']);
 
     expect($component->get('filteredDeadlines')->count())->toBe(1);
@@ -152,6 +168,8 @@ test('export reflects currently applied category filter', function () {
 });
 
 test('export reflects currently applied frequency filter', function () {
+    $user = User::factory()->create();
+
     $taxModel1 = TaxModel::factory()->create([
         'frequency' => 'monthly',
         'year' => 2026,
@@ -174,7 +192,8 @@ test('export reflects currently applied frequency filter', function () {
         'year' => 2026,
     ]);
 
-    $component = Livewire::test('calendar.calendar-view')
+    $component = Livewire::actingAs($user)
+        ->test('calendar.calendar-view')
         ->set('frequencies', ['monthly']);
 
     expect($component->get('filteredDeadlines')->count())->toBe(1);
@@ -184,6 +203,8 @@ test('export reflects currently applied frequency filter', function () {
 });
 
 test('export reflects currently applied company type filter', function () {
+    $user = User::factory()->create();
+
     $taxModel1 = TaxModel::factory()->create([
         'applicable_to' => ['autonomo', 'pyme'],
         'year' => 2026,
@@ -206,7 +227,8 @@ test('export reflects currently applied company type filter', function () {
         'year' => 2026,
     ]);
 
-    $component = Livewire::test('calendar.calendar-view')
+    $component = Livewire::actingAs($user)
+        ->test('calendar.calendar-view')
         ->set('companyTypes', ['autonomo']);
 
     expect($component->get('filteredDeadlines')->count())->toBe(1);
@@ -216,6 +238,8 @@ test('export reflects currently applied company type filter', function () {
 });
 
 test('export reflects multiple applied filters', function () {
+    $user = User::factory()->create();
+
     $taxModel1 = TaxModel::factory()->create([
         'category' => 'iva',
         'frequency' => 'monthly',
@@ -255,7 +279,8 @@ test('export reflects multiple applied filters', function () {
         'year' => 2026,
     ]);
 
-    $component = Livewire::test('calendar.calendar-view')
+    $component = Livewire::actingAs($user)
+        ->test('calendar.calendar-view')
         ->set('categories', ['iva'])
         ->set('frequencies', ['monthly'])
         ->set('companyTypes', ['autonomo']);
@@ -291,6 +316,8 @@ test('export buttons show when deadlines exist', function () {
 });
 
 test('ical export handles deadlines with time correctly', function () {
+    $user = User::factory()->create();
+
     $taxModel = TaxModel::factory()->create(['year' => 2026]);
 
     Deadline::factory()->create([
@@ -300,13 +327,16 @@ test('ical export handles deadlines with time correctly', function () {
         'year' => 2026,
     ]);
 
-    $response = Livewire::test('calendar.calendar-view')
+    $response = Livewire::actingAs($user)
+        ->test('calendar.calendar-view')
         ->call('exportIcal');
 
     $response->assertStatus(200);
 });
 
 test('ical export handles deadlines without time as full day events', function () {
+    $user = User::factory()->create();
+
     $taxModel = TaxModel::factory()->create(['year' => 2026]);
 
     Deadline::factory()->create([
@@ -316,7 +346,8 @@ test('ical export handles deadlines without time as full day events', function (
         'year' => 2026,
     ]);
 
-    $response = Livewire::test('calendar.calendar-view')
+    $response = Livewire::actingAs($user)
+        ->test('calendar.calendar-view')
         ->call('exportIcal');
 
     $response->assertStatus(200);

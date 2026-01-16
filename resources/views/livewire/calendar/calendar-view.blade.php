@@ -5,14 +5,27 @@
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <flux:heading size="xl" class="text-gray-900 dark:text-white">Calendario Fiscal 2026</flux:heading>
 
-                {{-- View Switcher --}}
-                <div class="flex flex-wrap gap-2">
-                    <flux:button wire:click="$set('view', 'day')" :variant="$view === 'day' ? 'primary' : 'ghost'" size="sm">Día</flux:button>
-                    <flux:button wire:click="$set('view', 'week')" :variant="$view === 'week' ? 'primary' : 'ghost'" size="sm">Semana</flux:button>
-                    <flux:button wire:click="$set('view', 'month')" :variant="$view === 'month' ? 'primary' : 'ghost'" size="sm">Mes</flux:button>
-                    <flux:button wire:click="$set('view', 'list')" :variant="$view === 'list' ? 'primary' : 'ghost'" size="sm">Lista</flux:button>
-                    <flux:button wire:click="$set('view', 'timeline')" :variant="$view === 'timeline' ? 'primary' : 'ghost'" size="sm">Línea</flux:button>
-                    <flux:button wire:click="$set('view', 'year')" :variant="$view === 'year' ? 'primary' : 'ghost'" size="sm">Año</flux:button>
+                <div class="flex flex-wrap items-center gap-2">
+                    {{-- Guest CTAs --}}
+                    @guest
+                        <flux:button href="{{ route('login') }}" variant="ghost" size="sm" icon="arrow-right-end-on-rectangle">
+                            Iniciar Sesión
+                        </flux:button>
+                        <flux:button href="{{ route('register') }}" variant="primary" size="sm">
+                            Registrarse Gratis
+                        </flux:button>
+                        <flux:separator vertical class="hidden h-6 sm:block" />
+                    @endguest
+
+                    {{-- View Switcher --}}
+                    <div class="flex flex-wrap gap-2">
+                        <flux:button wire:click="$set('view', 'day')" :variant="$view === 'day' ? 'primary' : 'ghost'" size="sm">Día</flux:button>
+                        <flux:button wire:click="$set('view', 'week')" :variant="$view === 'week' ? 'primary' : 'ghost'" size="sm">Semana</flux:button>
+                        <flux:button wire:click="$set('view', 'month')" :variant="$view === 'month' ? 'primary' : 'ghost'" size="sm">Mes</flux:button>
+                        <flux:button wire:click="$set('view', 'list')" :variant="$view === 'list' ? 'primary' : 'ghost'" size="sm">Lista</flux:button>
+                        <flux:button wire:click="$set('view', 'timeline')" :variant="$view === 'timeline' ? 'primary' : 'ghost'" size="sm">Línea</flux:button>
+                        <flux:button wire:click="$set('view', 'year')" :variant="$view === 'year' ? 'primary' : 'ghost'" size="sm">Año</flux:button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -24,15 +37,36 @@
             <div class="lg:col-span-1">
                 <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
                     <div class="mb-4 flex items-center justify-between">
-                        <flux:heading size="lg">Filtros</flux:heading>
+                        <div class="flex items-center gap-2">
+                            <flux:heading size="lg">Filtros</flux:heading>
+                            @guest
+                                <flux:tooltip content="Regístrate para usar filtros avanzados" position="right" toggleable>
+                                    <flux:icon.lock-closed class="size-4 text-gray-400" />
+                                </flux:tooltip>
+                            @endguest
+                        </div>
                         @if(!empty($categories) || !empty($frequencies) || !empty($companyTypes) || !empty($tags) || $proximity)
                             <flux:button wire:click="clearFilters" variant="ghost" size="sm">Limpiar</flux:button>
                         @endif
                     </div>
 
-                    <div class="space-y-6">
+                    @guest
+                        <div class="mb-4 rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
+                            <flux:text class="mb-2 text-sm font-semibold text-blue-900 dark:text-blue-100">
+                                Desbloquea Filtros Avanzados
+                            </flux:text>
+                            <flux:text class="mb-3 text-xs text-blue-700 dark:text-blue-300">
+                                Regístrate gratis para filtrar por categoría, periodicidad, tipo de empresa y más.
+                            </flux:text>
+                            <flux:button href="{{ route('register') }}" variant="primary" size="xs" class="w-full">
+                                Registrarse Ahora
+                            </flux:button>
+                        </div>
+                    @endguest
+
+                    <div class="space-y-6" @guest class="pointer-events-none opacity-50" @endguest>
                         {{-- Category Filter --}}
-                        <div>
+                        <div class="relative">
                             <flux:heading size="sm" class="mb-2">Categoría</flux:heading>
                             <div class="space-y-2">
                                 @foreach($availableCategories as $category)
@@ -40,6 +74,7 @@
                                         wire:model.live="categories"
                                         value="{{ $category }}"
                                         :label="ucfirst($category)"
+                                        :disabled="!$this->canUseFilters()"
                                     />
                                 @endforeach
                             </div>
@@ -48,7 +83,7 @@
                         <flux:separator />
 
                         {{-- Frequency Filter --}}
-                        <div>
+                        <div class="relative">
                             <flux:heading size="sm" class="mb-2">Periodicidad</flux:heading>
                             <div class="space-y-2">
                                 @foreach($availableFrequencies as $frequency)
@@ -56,6 +91,7 @@
                                         wire:model.live="frequencies"
                                         value="{{ $frequency }}"
                                         :label="ucfirst($frequency)"
+                                        :disabled="!$this->canUseFilters()"
                                     />
                                 @endforeach
                             </div>
@@ -64,7 +100,7 @@
                         <flux:separator />
 
                         {{-- Company Type Filter --}}
-                        <div>
+                        <div class="relative">
                             <flux:heading size="sm" class="mb-2">Tipo de Empresa</flux:heading>
                             <div class="space-y-2">
                                 @foreach($availableCompanyTypes as $type)
@@ -77,6 +113,7 @@
                                             'gran_empresa' => 'Gran Empresa',
                                             default => ucfirst($type)
                                         }"
+                                        :disabled="!$this->canUseFilters()"
                                     />
                                 @endforeach
                             </div>
@@ -85,9 +122,9 @@
                         <flux:separator />
 
                         {{-- Proximity Filter --}}
-                        <div>
+                        <div class="relative">
                             <flux:heading size="sm" class="mb-2">Próximos</flux:heading>
-                            <flux:select wire:model.live="proximity" placeholder="Seleccionar plazo">
+                            <flux:select wire:model.live="proximity" placeholder="Seleccionar plazo" :disabled="!$this->canUseFilters()">
                                 <option value="">Todos</option>
                                 <option value="next_7_days">Próximos 7 días</option>
                                 <option value="next_30_days">Próximos 30 días</option>
@@ -108,6 +145,19 @@
                                 />
                             </div>
                         @endauth
+
+                        @guest
+                            <flux:separator />
+
+                            {{-- Completion Filter (Locked) --}}
+                            <div class="relative">
+                                <flux:heading size="sm" class="mb-2">Estado</flux:heading>
+                                <flux:checkbox
+                                    label="Solo mostrar pendientes"
+                                    disabled
+                                />
+                            </div>
+                        @endguest
                     </div>
                 </div>
             </div>
@@ -143,16 +193,45 @@
 
                         @if($deadlines->isNotEmpty())
                             <flux:separator vertical class="hidden h-6 sm:block" />
-                            <div class="flex flex-wrap justify-center gap-2">
-                                <flux:button wire:click="exportCsv" variant="ghost" size="sm" icon="arrow-down-tray">
-                                    Exportar CSV
-                                </flux:button>
-                                <flux:button wire:click="exportExcel" variant="ghost" size="sm" icon="arrow-down-tray">
-                                    Exportar Excel
-                                </flux:button>
-                                <flux:button wire:click="exportIcal" variant="ghost" size="sm" icon="calendar">
-                                    Exportar iCal
-                                </flux:button>
+                            <div class="flex flex-wrap items-center justify-center gap-2">
+                                @auth
+                                    <flux:button wire:click="exportCsv" variant="ghost" size="sm" icon="arrow-down-tray">
+                                        Exportar CSV
+                                    </flux:button>
+                                    <flux:button wire:click="exportExcel" variant="ghost" size="sm" icon="arrow-down-tray">
+                                        Exportar Excel
+                                    </flux:button>
+                                    <flux:button wire:click="exportIcal" variant="ghost" size="sm" icon="calendar">
+                                        Exportar iCal
+                                    </flux:button>
+                                @endauth
+
+                                @guest
+                                    <flux:tooltip content="Regístrate para exportar datos" position="bottom" toggleable>
+                                        <div class="relative inline-block">
+                                            <flux:button variant="ghost" size="sm" icon="arrow-down-tray" disabled class="opacity-50">
+                                                Exportar CSV
+                                            </flux:button>
+                                            <flux:icon.lock-closed class="pointer-events-none absolute right-2 top-1/2 size-3 -translate-y-1/2 text-gray-400" />
+                                        </div>
+                                    </flux:tooltip>
+                                    <flux:tooltip content="Regístrate para exportar datos" position="bottom" toggleable>
+                                        <div class="relative inline-block">
+                                            <flux:button variant="ghost" size="sm" icon="arrow-down-tray" disabled class="opacity-50">
+                                                Exportar Excel
+                                            </flux:button>
+                                            <flux:icon.lock-closed class="pointer-events-none absolute right-2 top-1/2 size-3 -translate-y-1/2 text-gray-400" />
+                                        </div>
+                                    </flux:tooltip>
+                                    <flux:tooltip content="Regístrate para exportar datos" position="bottom" toggleable>
+                                        <div class="relative inline-block">
+                                            <flux:button variant="ghost" size="sm" icon="calendar" disabled class="opacity-50">
+                                                Exportar iCal
+                                            </flux:button>
+                                            <flux:icon.lock-closed class="pointer-events-none absolute right-2 top-1/2 size-3 -translate-y-1/2 text-gray-400" />
+                                        </div>
+                                    </flux:tooltip>
+                                @endguest
                             </div>
                         @endif
                     </div>

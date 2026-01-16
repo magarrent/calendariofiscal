@@ -216,8 +216,27 @@ class CalendarView extends Component
         return ['autonomo', 'pyme', 'gran_empresa'];
     }
 
+    public function canUseFilters(): bool
+    {
+        return auth()->check();
+    }
+
+    public function canExport(): bool
+    {
+        return auth()->check();
+    }
+
+    public function canTrackCompletion(): bool
+    {
+        return auth()->check();
+    }
+
     public function exportCsv(): BinaryFileResponse
     {
+        if (! $this->canExport()) {
+            abort(403, 'You must be logged in to export data.');
+        }
+
         $timestamp = now()->format('Y-m-d_His');
         $filename = "calendario_fiscal_{$timestamp}.csv";
 
@@ -230,6 +249,10 @@ class CalendarView extends Component
 
     public function exportExcel(): BinaryFileResponse
     {
+        if (! $this->canExport()) {
+            abort(403, 'You must be logged in to export data.');
+        }
+
         $timestamp = now()->format('Y-m-d_His');
         $filename = "calendario_fiscal_{$timestamp}.xlsx";
 
@@ -241,6 +264,10 @@ class CalendarView extends Component
 
     public function exportIcal(): StreamedResponse
     {
+        if (! $this->canExport()) {
+            abort(403, 'You must be logged in to export data.');
+        }
+
         $calendar = Calendar::create('Calendario Fiscal '.$this->year)
             ->productIdentifier('Calendario Fiscal');
 
