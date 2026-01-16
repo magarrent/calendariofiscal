@@ -132,7 +132,11 @@
                     {{-- Deadlines List --}}
                     <div class="space-y-4">
                         @forelse($deadlines as $deadline)
-                            <div wire:key="deadline-{{ $deadline->id }}" class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                            <div
+                                wire:key="deadline-{{ $deadline->id }}"
+                                wire:click="showModel({{ $deadline->taxModel->id }})"
+                                class="cursor-pointer rounded-lg border border-gray-200 p-4 transition hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-800"
+                            >
                                 <div class="flex items-start justify-between">
                                     <div class="flex-1">
                                         <flux:heading size="sm">{{ $deadline->taxModel->name }}</flux:heading>
@@ -172,4 +176,9 @@
             </div>
         </div>
     </div>
+
+    {{-- Model Detail Modal --}}
+    @if($selectedModelId)
+        <livewire:calendar.model-detail :model-id="$selectedModelId" wire:key="model-{{ $selectedModelId }}" />
+    @endif
 </div>

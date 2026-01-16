@@ -32,10 +32,18 @@ class CalendarView extends Component
 
     public int $year = 2026;
 
+    public ?int $selectedModelId = null;
+
     public function mount(): void
     {
         $this->currentDate = Carbon::now();
         $this->year = (int) now()->year;
+    }
+
+    public function showModel(int $modelId): void
+    {
+        $this->selectedModelId = $modelId;
+        $this->dispatch('open-modal', 'model-detail');
     }
 
     public function clearFilters(): void
