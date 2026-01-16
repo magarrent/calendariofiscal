@@ -17,13 +17,23 @@ class Profile extends Component
 
     public string $email = '';
 
+    public string $company_type = '';
+
+    public string $notification_frequency = 'weekly';
+
+    public array $notification_types = [];
+
     /**
      * Mount the component.
      */
     public function mount(): void
     {
-        $this->name = Auth::user()->name;
-        $this->email = Auth::user()->email;
+        $user = Auth::user();
+        $this->name = $user->name;
+        $this->email = $user->email;
+        $this->company_type = $user->company_type ?? '';
+        $this->notification_frequency = $user->notification_frequency ?? 'weekly';
+        $this->notification_types = $user->notification_types ?? [];
     }
 
     /**
@@ -33,7 +43,20 @@ class Profile extends Component
     {
         $user = Auth::user();
 
-        $validated = $this->validate($this->profileRules($user->id));
+        $validated = $this->validate(array_merge(
+            $this->profileRules($user->id),
+            [
+                'company_type' => ['nullable', 'string', 'in:autonomo,pyme,large_corp'],
+                'notification_frequency' => ['required', 'string', 'in:daily,weekly,monthly,never'],
+                'notification_types' => ['nullable', 'array'],
+                'notification_types.*' => ['string', 'in:deadline_reminder,new_model,model_update,summary'],
+            ]
+        ));
+
+        // Convert empty company_type to null for enum compatibility
+        if (isset($validated['company_type']) && $validated['company_type'] === '') {
+            $validated['company_type'] = null;
+        }
 
         $user->fill($validated);
 
@@ -75,5 +98,66 @@ class Profile extends Component
     {
         return ! Auth::user() instanceof MustVerifyEmail
             || (Auth::user() instanceof MustVerifyEmail && Auth::user()->hasVerifiedEmail());
+    }
+
+    public function exportUserData(): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $user = Auth::user();
+
+        $data = [
+            'profile' => [
+                'name' => $user->name,
+                'email' => $user->email,
+                'company_type' => $user->company_type,
+                'notification_frequency' => $user->notification_frequency,
+                'notification_types' => $user->notification_types,
+                'created_at' => $user->created_at->toISOString(),
+                'updated_at' => $user->updated_at->toISOString(),
+            ],
+            'favorites' => $user->favoriteTaxModels()->get()->map(function ($model) {
+                return [
+                    'model_number' => $model->model_number,
+                    'name' => $model->name,
+                    'category' => $model->category,
+                ];
+            })->toArray(),
+            'deadlines' => $user->deadlines()->get()->map(function ($deadline) {
+                return [
+                    'title' => $deadline->title,
+                    'description' => $deadline->description,
+                    'deadline_date' => $deadline->deadline_date->toDateString(),
+                    'deadline_time' => $deadline->deadline_time?->format('H:i'),
+                    'year' => $deadline->year,
+                ];
+            })->toArray(),
+            'model_completions' => $user->modelCompletions()->get()->map(function ($model) {
+                return [
+                    'model_number' => $model->model_number,
+                    'name' => $model->name,
+                    'year' => $model->pivot->year,
+                    'completed' => $model->pivot->completed,
+                    'completed_at' => $model->pivot->completed_at?->toISOString(),
+                ];
+            })->toArray(),
+            'model_notes' => \App\Models\UserModelNote::where('user_id', $user->id)
+                ->with('taxModel')
+                ->get()
+                ->map(function ($note) {
+                    return [
+                        'model_number' => $note->taxModel->model_number,
+                        'model_name' => $note->taxModel->name,
+                        'note' => $note->note,
+                        'filing_number' => $note->filing_number,
+                    ];
+                })->toArray(),
+        ];
+
+        $filename = 'user_data_'.now()->format('Y-m-d_His').'.json';
+
+        return response()->streamDownload(function () use ($data) {
+            echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        }, $filename, [
+            'Content-Type' => 'application/json',
+        ]);
     }
 }

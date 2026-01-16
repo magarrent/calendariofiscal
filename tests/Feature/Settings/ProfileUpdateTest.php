@@ -74,3 +74,102 @@ test('correct password must be provided to delete account', function () {
 
     expect($user->fresh())->not->toBeNull();
 });
+
+test('user can update company type', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user);
+
+    $response = Livewire::test(Profile::class)
+        ->set('name', $user->name)
+        ->set('email', $user->email)
+        ->set('company_type', 'autonomo')
+        ->call('updateProfileInformation');
+
+    $response->assertHasNoErrors();
+
+    $user->refresh();
+
+    expect($user->company_type)->toBe('autonomo');
+});
+
+test('user can update notification frequency', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user);
+
+    $response = Livewire::test(Profile::class)
+        ->set('name', $user->name)
+        ->set('email', $user->email)
+        ->set('notification_frequency', 'monthly')
+        ->call('updateProfileInformation');
+
+    $response->assertHasNoErrors();
+
+    $user->refresh();
+
+    expect($user->notification_frequency)->toBe('monthly');
+});
+
+test('user can update notification types', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user);
+
+    $types = ['deadline_reminder', 'new_model'];
+
+    $response = Livewire::test(Profile::class)
+        ->set('name', $user->name)
+        ->set('email', $user->email)
+        ->set('notification_types', $types)
+        ->call('updateProfileInformation');
+
+    $response->assertHasNoErrors();
+
+    $user->refresh();
+
+    expect($user->notification_types)->toBe($types);
+});
+
+test('notification frequency must be valid', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user);
+
+    $response = Livewire::test(Profile::class)
+        ->set('name', $user->name)
+        ->set('email', $user->email)
+        ->set('notification_frequency', 'invalid')
+        ->call('updateProfileInformation');
+
+    $response->assertHasErrors(['notification_frequency']);
+});
+
+test('company type must be valid', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user);
+
+    $response = Livewire::test(Profile::class)
+        ->set('name', $user->name)
+        ->set('email', $user->email)
+        ->set('company_type', 'invalid')
+        ->call('updateProfileInformation');
+
+    $response->assertHasErrors(['company_type']);
+});
+
+test('user can export their data', function () {
+    $user = User::factory()->create([
+        'company_type' => 'autonomo',
+        'notification_frequency' => 'weekly',
+        'notification_types' => ['deadline_reminder', 'new_model'],
+    ]);
+
+    $this->actingAs($user);
+
+    $response = Livewire::test(Profile::class)
+        ->call('exportUserData');
+
+    $response->assertOk();
+});

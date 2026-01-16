@@ -53,6 +53,22 @@
                 viewable
             />
 
+            <!-- Terms of Service -->
+            <div class="flex flex-col gap-4">
+                <flux:checkbox
+                    name="terms"
+                    :label="__('I accept the terms of service')"
+                    required
+                />
+
+                <!-- Privacy Policy -->
+                <flux:checkbox
+                    name="privacy"
+                    :label="__('I accept the privacy policy')"
+                    required
+                />
+            </div>
+
             <div class="flex items-center justify-end">
                 <flux:button type="submit" variant="primary" class="w-full">
                     {{ __('Create account') }}

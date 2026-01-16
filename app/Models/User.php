@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -10,7 +10,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
@@ -26,6 +26,12 @@ class User extends Authenticatable
         'password',
         'company_type',
         'subscription_token',
+        'terms_accepted',
+        'privacy_accepted',
+        'terms_accepted_at',
+        'privacy_accepted_at',
+        'notification_frequency',
+        'notification_types',
     ];
 
     /**
@@ -50,6 +56,11 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'terms_accepted' => 'boolean',
+            'privacy_accepted' => 'boolean',
+            'terms_accepted_at' => 'datetime',
+            'privacy_accepted_at' => 'datetime',
+            'notification_types' => 'array',
         ];
     }
 
@@ -83,5 +94,46 @@ class User extends Authenticatable
         } else {
             $this->favoriteTaxModels()->attach($taxModel);
         }
+    }
+
+    public function modelNotes(): BelongsToMany
+    {
+        return $this->belongsToMany(TaxModel::class, 'user_model_notes')
+            ->withPivot(['note', 'filing_number'])
+            ->withTimestamps();
+    }
+
+    public function deadlines(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(UserDeadline::class);
+    }
+
+    public function modelCompletions(): BelongsToMany
+    {
+        return $this->belongsToMany(TaxModel::class, 'user_model_completion')
+            ->withPivot(['year', 'completed', 'completed_at'])
+            ->withTimestamps();
+    }
+
+    public function hasCompletedModel(TaxModel $taxModel, int $year): bool
+    {
+        return $this->modelCompletions()
+            ->where('tax_model_id', $taxModel->id)
+            ->wherePivot('year', $year)
+            ->wherePivot('completed', true)
+            ->exists();
+    }
+
+    public function toggleModelCompletion(TaxModel $taxModel, int $year): void
+    {
+        $completion = UserModelCompletion::firstOrCreate([
+            'user_id' => $this->id,
+            'tax_model_id' => $taxModel->id,
+            'year' => $year,
+        ]);
+
+        $completion->completed = ! $completion->completed;
+        $completion->completed_at = $completion->completed ? now() : null;
+        $completion->save();
     }
 }

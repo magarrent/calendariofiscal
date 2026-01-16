@@ -22,12 +22,23 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             ...$this->profileRules(),
             'password' => $this->passwordRules(),
+            'terms' => ['required', 'accepted'],
+            'privacy' => ['required', 'accepted'],
+        ], [
+            'terms.required' => 'You must accept the terms of service.',
+            'terms.accepted' => 'You must accept the terms of service.',
+            'privacy.required' => 'You must accept the privacy policy.',
+            'privacy.accepted' => 'You must accept the privacy policy.',
         ])->validate();
 
         return User::create([
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => $input['password'],
+            'terms_accepted' => true,
+            'privacy_accepted' => true,
+            'terms_accepted_at' => now(),
+            'privacy_accepted_at' => now(),
         ]);
     }
 }
