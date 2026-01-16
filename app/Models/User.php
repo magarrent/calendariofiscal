@@ -146,4 +146,39 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(NotificationLog::class);
     }
+
+    /**
+     * Generate a unique subscription token for the user.
+     */
+    public function generateSubscriptionToken(): string
+    {
+        do {
+            $token = Str::random(64);
+        } while (static::where('subscription_token', $token)->exists());
+
+        $this->subscription_token = $token;
+        $this->save();
+
+        return $token;
+    }
+
+    /**
+     * Regenerate the subscription token.
+     */
+    public function regenerateSubscriptionToken(): string
+    {
+        return $this->generateSubscriptionToken();
+    }
+
+    /**
+     * Get the calendar subscription URL.
+     */
+    public function subscriptionUrl(): ?string
+    {
+        if (! $this->subscription_token) {
+            return null;
+        }
+
+        return route('calendar.subscription.feed', ['token' => $this->subscription_token]);
+    }
 }
