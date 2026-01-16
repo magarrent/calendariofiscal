@@ -3,10 +3,10 @@
   "sessionId": "548888ff-522b-4e18-a0d3-5d38331092f2",
   "status": "running",
   "startedAt": "2026-01-16T15:43:15.899Z",
-  "updatedAt": "2026-01-16T15:44:49.083Z",
-  "currentIteration": 0,
+  "updatedAt": "2026-01-16T15:53:58.639Z",
+  "currentIteration": 2,
   "maxIterations": 10,
-  "tasksCompleted": 0,
+  "tasksCompleted": 2,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -17,14 +17,14 @@
       {
         "id": "US-010",
         "title": "Enhanced Guest User Experience",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-011",
         "title": "Calendar View Consolidation",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-012",
@@ -40,11 +40,32 @@
       }
     ]
   },
-  "iterations": [],
+  "iterations": [
+    {
+      "iteration": 1,
+      "status": "completed",
+      "taskId": "US-010",
+      "taskTitle": "Enhanced Guest User Experience",
+      "taskCompleted": true,
+      "durationMs": 227506,
+      "startedAt": "2026-01-16T15:43:23.324Z",
+      "endedAt": "2026-01-16T15:47:10.830Z"
+    },
+    {
+      "iteration": 2,
+      "status": "completed",
+      "taskId": "US-011",
+      "taskTitle": "Calendar View Consolidation",
+      "taskCompleted": true,
+      "durationMs": 405770,
+      "startedAt": "2026-01-16T15:47:11.843Z",
+      "endedAt": "2026-01-16T15:53:57.613Z"
+    }
+  ],
   "skippedTaskIds": [],
   "cwd": "/Users/marc/Documents/projects/calendariofiscal",
   "activeTaskIds": [
-    "US-010"
+    "US-012"
   ],
   "subagentPanelVisible": true
 }
