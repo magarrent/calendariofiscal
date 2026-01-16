@@ -2,12 +2,18 @@
 
 namespace App\Livewire\Calendar;
 
+use App\Exports\DeadlinesExport;
 use App\Models\Deadline;
 use App\Models\TaxModel;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Session;
 use Livewire\Component;
+use Maatwebsite\Excel\Facades\Excel;
+use Spatie\IcalendarGenerator\Components\Calendar;
+use Spatie\IcalendarGenerator\Components\Event;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CalendarView extends Component
 {
@@ -184,6 +190,74 @@ class CalendarView extends Component
     public function getAvailableCompanyTypesProperty(): array
     {
         return ['autonomo', 'pyme', 'gran_empresa'];
+    }
+
+    public function exportCsv(): BinaryFileResponse
+    {
+        $timestamp = now()->format('Y-m-d_His');
+        $filename = "calendario_fiscal_{$timestamp}.csv";
+
+        return Excel::download(
+            new DeadlinesExport($this->filteredDeadlines),
+            $filename,
+            \Maatwebsite\Excel\Excel::CSV
+        );
+    }
+
+    public function exportExcel(): BinaryFileResponse
+    {
+        $timestamp = now()->format('Y-m-d_His');
+        $filename = "calendario_fiscal_{$timestamp}.xlsx";
+
+        return Excel::download(
+            new DeadlinesExport($this->filteredDeadlines),
+            $filename
+        );
+    }
+
+    public function exportIcal(): StreamedResponse
+    {
+        $calendar = Calendar::create('Calendario Fiscal '.$this->year)
+            ->productIdentifier('Calendario Fiscal');
+
+        foreach ($this->filteredDeadlines as $deadline) {
+            $taxModel = $deadline->taxModel;
+
+            if (! $taxModel) {
+                continue;
+            }
+
+            $event = Event::create()
+                ->name($taxModel->name.' - Modelo '.$taxModel->model_number)
+                ->startsAt($deadline->deadline_date)
+                ->endsAt($deadline->deadline_date)
+                ->fullDay();
+
+            if ($deadline->deadline_time) {
+                $event->startsAt($deadline->deadline_date->setTimeFrom($deadline->deadline_time))
+                    ->endsAt($deadline->deadline_date->setTimeFrom($deadline->deadline_time)->addHour())
+                    ->fullDay(false);
+            }
+
+            if ($taxModel->description) {
+                $event->description($taxModel->description);
+            }
+
+            if ($taxModel->aeat_url) {
+                $event->url($taxModel->aeat_url);
+            }
+
+            $calendar->event($event);
+        }
+
+        $timestamp = now()->format('Y-m-d_His');
+        $filename = "calendario_fiscal_{$timestamp}.ics";
+
+        return response()->streamDownload(
+            fn () => print $calendar->get(),
+            $filename,
+            ['Content-Type' => 'text/calendar; charset=utf-8']
+        );
     }
 
     public function render()

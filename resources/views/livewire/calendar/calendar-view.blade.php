@@ -125,8 +125,23 @@
                         <flux:button wire:click="nextPeriod" variant="ghost" icon-trailing="chevron-right">Siguiente</flux:button>
                     </div>
 
-                    <div class="mb-4 text-center">
+                    <div class="mb-4 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
                         <flux:button wire:click="today" variant="primary" size="sm">Hoy</flux:button>
+
+                        @if($deadlines->isNotEmpty())
+                            <flux:separator vertical class="hidden h-6 sm:block" />
+                            <div class="flex flex-wrap justify-center gap-2">
+                                <flux:button wire:click="exportCsv" variant="ghost" size="sm" icon="arrow-down-tray">
+                                    Exportar CSV
+                                </flux:button>
+                                <flux:button wire:click="exportExcel" variant="ghost" size="sm" icon="arrow-down-tray">
+                                    Exportar Excel
+                                </flux:button>
+                                <flux:button wire:click="exportIcal" variant="ghost" size="sm" icon="calendar">
+                                    Exportar iCal
+                                </flux:button>
+                            </div>
+                        @endif
                     </div>
 
                     {{-- Deadlines List --}}
