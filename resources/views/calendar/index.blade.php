@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ config('app.name', 'Calendario Fiscal') }} - Calendario Fiscal 2026</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @fluxStyles
+    @fluxAppearance
 </head>
 <body class="min-h-screen bg-gray-50 antialiased dark:bg-gray-900">
     <livewire:calendar.calendar-view />
