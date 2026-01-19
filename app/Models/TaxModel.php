@@ -15,6 +15,7 @@ class TaxModel extends Model
         'model_number',
         'name',
         'description',
+        'group_description',
         'instructions',
         'penalties',
         'frequency',
@@ -22,6 +23,7 @@ class TaxModel extends Model
         'aeat_url',
         'category',
         'year',
+        'source_document',
     ];
 
     protected function casts(): array

@@ -4,7 +4,11 @@
       "mcp__laravel-boost__get-absolute-url",
       "Bash(awk:*)",
       "mcp__laravel-boost__search-docs",
-      "mcp__laravel-boost__tinker"
+      "mcp__laravel-boost__tinker",
+      "Bash(php artisan migrate:fresh:*)",
+      "Bash(php artisan tinker:*)",
+      "Bash(php artisan db:seed:*)",
+      "Bash(vendor/bin/pint:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

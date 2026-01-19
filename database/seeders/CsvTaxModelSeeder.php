@@ -4,15 +4,15 @@ namespace Database\Seeders;
 
 use App\Models\Deadline;
 use App\Models\TaxModel;
-use Carbon\Carbon;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class CsvTaxModelSeeder extends Seeder
 {
     public function run(): void
     {
-        $csvPath = storage_path('app/private/modelos_aeat_2026_super_detallado.csv');
+        // Path to the new comprehensive CSV
+        $csvPath = storage_path('app/private/mega_catalogo_modelos_aeat_2026_solo_modelos_con_ambito_empresa.csv');
 
         if (! file_exists($csvPath)) {
             $this->command->error("CSV file not found at: {$csvPath}");
@@ -22,214 +22,243 @@ class CsvTaxModelSeeder extends Seeder
 
         $this->command->info('Reading CSV file...');
 
-        $file = fopen($csvPath, 'r');
+        // Read CSV and group by modelo
+        $csv = array_map('str_getcsv', file($csvPath));
+        $headers = array_shift($csv); // Remove header row
 
-        // Skip BOM if present
-        $bom = fread($file, 3);
-        if ($bom !== "\xEF\xBB\xBF") {
-            rewind($file);
+        // Remove BOM from first header if present
+        if (isset($headers[0])) {
+            $headers[0] = ltrim($headers[0], "\xEF\xBB\xBF");
         }
 
-        // Read header
-        $header = fgetcsv($file);
+        // Group deadlines by modelo number
+        $groupedData = [];
 
-        if (! $header) {
-            $this->command->error('Failed to read CSV header');
+        foreach ($csv as $row) {
+            $data = array_combine($headers, $row);
 
-            return;
-        }
+            $modelNumber = $data['modelo'];
 
-        $rowCount = 0;
-        $parsedCount = 0;
-        $errorCount = 0;
-        $skippedEventBased = 0;
-
-        // Store tax models grouped by model number to avoid duplicates
-        $taxModelsCache = [];
-
-        while (($row = fgetcsv($file)) !== false) {
-            $rowCount++;
-
-            // Skip empty rows
-            if (empty(array_filter($row))) {
-                continue;
+            if (! isset($groupedData[$modelNumber])) {
+                $groupedData[$modelNumber] = [
+                    'model_data' => $data,
+                    'deadlines' => [],
+                ];
             }
 
-            try {
-                $data = array_combine($header, $row);
+            $groupedData[$modelNumber]['deadlines'][] = $data;
+        }
 
-                if (! $data || empty($data['modelo']) || empty($data['nombre'])) {
-                    $this->command->warn("Skipping row {$rowCount}: Missing required fields");
-                    $errorCount++;
+        $this->command->info('Processing '.count($groupedData).' tax models...');
 
-                    continue;
+        DB::transaction(function () use ($groupedData) {
+            foreach ($groupedData as $modelNumber => $group) {
+                $modelData = $group['model_data'];
+
+                // Parse applicable_to from ambito field
+                $applicableTo = $this->parseApplicableTo($modelData['ambito'] ?? '');
+
+                // Infer frequency from the deadlines
+                $frequency = $this->inferFrequency($group['deadlines']);
+
+                // Extract year from deadline date
+                $year = 2026; // Default year
+                if (! empty($modelData['fecha_fin'])) {
+                    $year = (int) substr($modelData['fecha_fin'], 0, 4);
                 }
 
-                // Parse dates with error handling
-                $periodStart = $this->parseDate($data['plazo_inicio_2026'] ?? '');
-                $periodEnd = $this->parseDate($data['plazo_fin_2026'] ?? '');
+                // Map category to simplified format
+                $category = $this->mapCategory($modelData['categoria'] ?? '');
 
-                // Skip event-based models (censal, cuando proceda, etc.) without dates
-                if (! $periodStart || ! $periodEnd) {
-                    $periodicidad = strtolower($data['periodicidad'] ?? '');
-                    $isEventBased = str_contains($periodicidad, 'cuando proceda') ||
-                        str_contains($periodicidad, 'no periódica') ||
-                        empty(trim($data['plazo_inicio_2026'] ?? ''));
+                // Create or update TaxModel
+                $taxModel = TaxModel::updateOrCreate(
+                    ['model_number' => $modelNumber],
+                    [
+                        'name' => $modelData['titulo'] ?? 'Modelo '.$modelNumber,
+                        'description' => $modelData['categoria'] ?? null,
+                        'group_description' => $modelData['grupo_desc'] ?? null,
+                        'category' => $category,
+                        'frequency' => $frequency,
+                        'applicable_to' => $applicableTo,
+                        'year' => $year,
+                        'source_document' => $modelData['fuente'] ?? null,
+                        'aeat_url' => 'https://sede.agenciatributaria.gob.es',
+                    ]
+                );
 
-                    if ($isEventBased) {
-                        $this->command->comment("Skipping row {$rowCount} (Modelo {$data['modelo']}): Event-based model (no fixed dates)");
-                        $skippedEventBased++;
+                // Create deadlines (use updateOrCreate to handle duplicate UIDs)
+                foreach ($group['deadlines'] as $deadlineData) {
+                    $uid = $deadlineData['uid'] ?? null;
+
+                    // Use updateOrCreate if UID exists, otherwise just create
+                    if ($uid) {
+                        Deadline::updateOrCreate(
+                            ['uid' => $uid],
+                            [
+                                'tax_model_id' => $taxModel->id,
+                                'deadline_date' => $this->parseDate($deadlineData['fecha_fin']),
+                                'deadline_time' => null, // Not in CSV
+                                'period' => $deadlineData['periodo'] ?? null,
+                                'period_start' => $this->parseDate($deadlineData['fecha_inicio']),
+                                'period_end' => $this->parseDate($deadlineData['fecha_fin']),
+                                'deadline_label' => $deadlineData['plazo_label'] ?? null,
+                                'check_day_1' => $this->parseDateTime($deadlineData['check_dia_1']),
+                                'check_day_10' => $this->parseDateTime($deadlineData['check_dia_10']),
+                                'rule_start_date' => $this->parseDate($deadlineData['fecha_inicio_regla']),
+                                'is_variable' => $this->parseBoolean($deadlineData['plazo_variable']),
+                                'page_number' => $this->parseInt($deadlineData['pagina_pdf']),
+                                'details' => $deadlineData['detalle'] ?? null,
+                                'deadline_scope' => $deadlineData['ambito_plazo'] ?? null,
+                                'conditions' => $deadlineData['condicion'] ?? null,
+                                'year' => $year,
+                            ]
+                        );
                     } else {
-                        $this->command->warn("Skipping row {$rowCount}: Invalid dates");
-                        $errorCount++;
+                        Deadline::create([
+                            'tax_model_id' => $taxModel->id,
+                            'uid' => null,
+                            'deadline_date' => $this->parseDate($deadlineData['fecha_fin']),
+                            'deadline_time' => null,
+                            'period' => $deadlineData['periodo'] ?? null,
+                            'period_start' => $this->parseDate($deadlineData['fecha_inicio']),
+                            'period_end' => $this->parseDate($deadlineData['fecha_fin']),
+                            'deadline_label' => $deadlineData['plazo_label'] ?? null,
+                            'check_day_1' => $this->parseDateTime($deadlineData['check_dia_1']),
+                            'check_day_10' => $this->parseDateTime($deadlineData['check_dia_10']),
+                            'rule_start_date' => $this->parseDate($deadlineData['fecha_inicio_regla']),
+                            'is_variable' => $this->parseBoolean($deadlineData['plazo_variable']),
+                            'page_number' => $this->parseInt($deadlineData['pagina_pdf']),
+                            'details' => $deadlineData['detalle'] ?? null,
+                            'deadline_scope' => $deadlineData['ambito_plazo'] ?? null,
+                            'conditions' => $deadlineData['condicion'] ?? null,
+                            'year' => $year,
+                        ]);
                     }
-
-                    continue;
                 }
 
-                // Calculate days to complete
-                $daysToComplete = $periodStart->diffInDays($periodEnd);
-
-                // Get or create tax model
-                $modelNumber = trim($data['modelo']);
-                $modelKey = $modelNumber.'_'.$data['categoria'].'_'.$data['periodicidad'];
-
-                if (! isset($taxModelsCache[$modelKey])) {
-                    $taxModel = TaxModel::firstOrCreate(
-                        [
-                            'model_number' => $modelNumber,
-                            'category' => $this->parseCategory($data['categoria'] ?? ''),
-                            'frequency' => $this->parseFrequency($data['periodicidad'] ?? ''),
-                            'year' => 2026,
-                        ],
-                        [
-                            'name' => trim($data['nombre']),
-                            'description' => trim($data['tipo_declaracion'] ?? ''),
-                            'instructions' => trim($data['obligados_tipicos'] ?? ''),
-                            'applicable_to' => $this->parseApplicableTo($data['obligados_tipicos'] ?? ''),
-                            'aeat_url' => $this->parseAeatUrl($data['fuente_oficial'] ?? ''),
-                            'penalties' => null,
-                        ]
-                    );
-
-                    $taxModelsCache[$modelKey] = $taxModel;
-                } else {
-                    $taxModel = $taxModelsCache[$modelKey];
-                }
-
-                // Create deadline
-                Deadline::create([
-                    'tax_model_id' => $taxModel->id,
-                    'deadline_date' => $periodEnd,
-                    'period_start' => $periodStart,
-                    'period_end' => $periodEnd,
-                    'days_to_complete' => $daysToComplete,
-                    'period_description' => trim($data['periodo_o_ejercicio'] ?? ''),
-                    'year' => 2026,
-                    'notes' => trim($data['notas'] ?? ''),
-                ]);
-
-                $parsedCount++;
-            } catch (\Exception $e) {
-                $this->command->error("Error parsing row {$rowCount}: ".$e->getMessage());
-                $errorCount++;
-                Log::error("CSV Parsing Error on row {$rowCount}", [
-                    'error' => $e->getMessage(),
-                    'row' => $row ?? null,
-                ]);
+                $this->command->info("Created/Updated: Modelo {$modelNumber} with ".count($group['deadlines']).' deadlines');
             }
-        }
+        });
 
-        fclose($file);
-
-        $this->command->info('✅ CSV parsing complete!');
-        $this->command->info("Total rows processed: {$rowCount}");
-        $this->command->info("Successfully parsed: {$parsedCount}");
-        $this->command->info("Skipped event-based models: {$skippedEventBased}");
-        $this->command->info("Errors: {$errorCount}");
-        $this->command->info('Tax models created: '.count($taxModelsCache));
+        $this->command->info('Tax models seeded successfully!');
     }
 
-    private function parseDate(?string $date): ?Carbon
+    private function parseApplicableTo(string $ambito): array
+    {
+        $mapping = [
+            'Autónomo' => 'autonomo',
+            'Sociedad' => 'pyme',
+            'Entidad' => 'pyme',
+            'Gran Empresa' => 'large_corp',
+            'Empresa sectorial' => 'large_corp',
+            'Entidad financiera' => 'large_corp',
+            'Persona física' => 'autonomo',
+            'Otros' => 'autonomo',
+        ];
+
+        $parts = array_map('trim', explode(';', $ambito));
+        $result = [];
+
+        foreach ($parts as $part) {
+            if (isset($mapping[$part])) {
+                $result[] = $mapping[$part];
+            }
+        }
+
+        return array_unique(array_filter($result)) ?: ['autonomo', 'pyme', 'large_corp'];
+    }
+
+    private function inferFrequency(array $deadlines): string
+    {
+        $count = count($deadlines);
+
+        if ($count >= 12) {
+            return 'monthly';
+        }
+
+        if ($count >= 4) {
+            return 'quarterly';
+        }
+
+        if ($count <= 1) {
+            return 'annual';
+        }
+
+        // Check period descriptions for hints
+        foreach ($deadlines as $deadline) {
+            $period = strtolower($deadline['periodo'] ?? '');
+
+            if (str_contains($period, 'trimestre')) {
+                return 'quarterly';
+            }
+
+            if (str_contains($period, 'año') || str_contains($period, 'ejercicio')) {
+                return 'annual';
+            }
+
+            if (preg_match('/(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)/i', $period)) {
+                return 'monthly';
+            }
+        }
+
+        return 'one-time';
+    }
+
+    private function mapCategory(string $categoria): string
+    {
+        $mapping = [
+            'IVA' => 'iva',
+            'Renta y Sociedades' => 'retenciones',
+            'Pagos fraccionados Renta' => 'irpf',
+            'IRPF' => 'irpf',
+            'Retenciones' => 'retenciones',
+            'Impuesto sobre Sociedades' => 'sociedades',
+            'Informativa' => 'otros',
+            'Censal' => 'otros',
+        ];
+
+        foreach ($mapping as $pattern => $category) {
+            if (str_contains($categoria, $pattern)) {
+                return $category;
+            }
+        }
+
+        return 'otros';
+    }
+
+    private function parseDate(?string $date): ?string
     {
         if (empty($date)) {
             return null;
         }
 
         try {
-            return Carbon::createFromFormat('Y-m-d', trim($date));
+            return date('Y-m-d', strtotime($date));
         } catch (\Exception $e) {
             return null;
         }
     }
 
-    private function parseCategory(string $category): string
+    private function parseDateTime(?string $datetime): ?string
     {
-        $category = strtolower(trim($category));
-
-        // Normalize categories
-        return match (true) {
-            str_contains($category, 'iva') => 'iva',
-            str_contains($category, 'irpf') => 'irpf',
-            str_contains($category, 'retenciones') => 'retenciones',
-            str_contains($category, 'informativa') => 'informativa',
-            str_contains($category, 'censal') => 'censal',
-            str_contains($category, 'sociedades') => 'sociedades',
-            str_contains($category, 'intracomunitario') => 'iva',
-            str_contains($category, 'nif') => 'informativa',
-            default => $category,
-        };
-    }
-
-    private function parseFrequency(string $frequency): string
-    {
-        $frequency = strtolower(trim($frequency));
-
-        return match (true) {
-            str_contains($frequency, 'mensual') => 'monthly',
-            str_contains($frequency, 'trimestral') => 'quarterly',
-            str_contains($frequency, 'anual') => 'annual',
-            default => 'one-time',
-        };
-    }
-
-    private function parseApplicableTo(string $obligados): array
-    {
-        $obligados = strtolower($obligados);
-        $types = [];
-
-        if (str_contains($obligados, 'autónomo') || str_contains($obligados, 'personas físicas')) {
-            $types[] = 'autonomo';
-        }
-
-        if (str_contains($obligados, 'empresas') || str_contains($obligados, 'pyme') || str_contains($obligados, 'empresarios')) {
-            $types[] = 'pyme';
-        }
-
-        if (str_contains($obligados, 'grandes empresas') || str_contains($obligados, 'entidades')) {
-            $types[] = 'large_corp';
-        }
-
-        // If no specific type identified, default to all
-        if (empty($types)) {
-            $types = ['autonomo', 'pyme', 'large_corp'];
-        }
-
-        return array_unique($types);
-    }
-
-    private function parseAeatUrl(string $fuente): ?string
-    {
-        if (empty($fuente)) {
+        if (empty($datetime)) {
             return null;
         }
 
-        // Extract first URL from the fuente field
-        if (preg_match('/\((https?:\/\/[^\)]+)\)/', $fuente, $matches)) {
-            return $matches[1];
+        try {
+            return date('Y-m-d H:i:s', strtotime($datetime));
+        } catch (\Exception $e) {
+            return null;
         }
+    }
 
-        // Default AEAT URL
-        return 'https://sede.agenciatributaria.gob.es';
+    private function parseBoolean(?string $value): bool
+    {
+        return strtolower($value ?? '') === 'true';
+    }
+
+    private function parseInt(?string $value): ?int
+    {
+        return is_numeric($value) ? (int) $value : null;
     }
 }
