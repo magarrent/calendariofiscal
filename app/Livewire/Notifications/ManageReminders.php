@@ -52,30 +52,33 @@ class ManageReminders extends Component
         $this->updateAllEnabledState();
     }
 
-    public function toggleReminder(int $days): void
+    public function updatedReminders($value, $key): void
     {
-        $this->reminders[$days]['enabled'] = ! $this->reminders[$days]['enabled'];
+        // Parse the nested key (e.g., "1.enabled" -> days = 1, field = "enabled")
+        if (str_contains($key, '.enabled')) {
+            $days = (int) str_replace('.enabled', '', $key);
 
-        if ($this->taxModelId) {
-            if ($this->reminders[$days]['enabled']) {
-                $reminder = TaxModelReminder::updateOrCreate(
-                    [
-                        'user_id' => auth()->id(),
-                        'tax_model_id' => $this->taxModelId,
-                        'days_before' => $days,
-                    ],
-                    [
-                        'enabled' => true,
-                        'notification_type' => 'email',
-                    ]
-                );
-                $this->reminders[$days]['id'] = $reminder->id;
-            } elseif ($this->reminders[$days]['id']) {
-                TaxModelReminder::find($this->reminders[$days]['id'])?->update(['enabled' => false]);
+            if ($this->taxModelId) {
+                if ($this->reminders[$days]['enabled']) {
+                    $reminder = TaxModelReminder::updateOrCreate(
+                        [
+                            'user_id' => auth()->id(),
+                            'tax_model_id' => $this->taxModelId,
+                            'days_before' => $days,
+                        ],
+                        [
+                            'enabled' => true,
+                            'notification_type' => 'email',
+                        ]
+                    );
+                    $this->reminders[$days]['id'] = $reminder->id;
+                } elseif ($this->reminders[$days]['id']) {
+                    TaxModelReminder::find($this->reminders[$days]['id'])?->update(['enabled' => false]);
+                }
             }
-        }
 
-        $this->updateAllEnabledState();
+            $this->updateAllEnabledState();
+        }
     }
 
     public function toggleAll(): void

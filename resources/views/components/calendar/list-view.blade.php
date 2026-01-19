@@ -55,41 +55,53 @@ if (!function_exists('isModelCompletedList')) {
     @else
         @foreach($deadlines->groupBy(fn($d) => $d->deadline_date->format('Y-m')) as $month => $monthDeadlines)
             <div class="mb-6">
-                <flux:heading size="lg" class="mb-3 text-gray-900 dark:text-gray-100">
+                <h3 class="calendar-heading text-2xl text-[#0a3d62] dark:text-white mb-4">
                     {{ \Carbon\Carbon::parse($month)->translatedFormat('F Y') }}
-                </flux:heading>
+                </h3>
 
-                <div class="space-y-2">
-                    @foreach($monthDeadlines as $deadline)
+                <div class="space-y-3">
+                    @foreach($monthDeadlines->groupBy(fn($d) => $d->taxModel->id . '_' . $d->deadline_date->format('Y-m-d')) as $groupedDeadlines)
                         @php
+                            $deadline = $groupedDeadlines->first();
                             $isCompleted = isModelCompletedList($deadline->taxModel->id, $currentDate->year);
+                            $hasMultiplePeriods = $groupedDeadlines->count() > 1;
                         @endphp
                         <div
                             wire:click="showModel({{ $deadline->taxModel->id }})"
-                            class="flex cursor-pointer items-center justify-between rounded-lg border border-gray-200 bg-white p-4 transition hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600 dark:hover:bg-gray-700"
+                            class="documento-card flex cursor-pointer items-center justify-between rounded-lg p-5"
                         >
                             <div class="flex items-center space-x-4">
-                                <div class="flex flex-col items-center">
-                                    <span class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                <div class="flex flex-col items-center rounded-lg bg-[#0a3d62] p-3 text-white">
+                                    <span class="text-3xl font-bold font-mono">
                                         {{ $deadline->deadline_date->format('d') }}
                                     </span>
-                                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                                    <span class="text-xs uppercase tracking-wide font-medium">
                                         {{ $deadline->deadline_date->translatedFormat('D') }}
                                     </span>
                                 </div>
 
                                 <div class="flex-1">
                                     <div class="flex items-center gap-2">
-                                        <flux:badge
-                                            size="sm"
-                                            class="{{ getCategoryColorList($deadline->taxModel->category ?? 'otros') }}"
-                                        >
+                                        <span class="text-lg font-bold font-mono">
                                             Modelo {{ $deadline->taxModel->model_number }}
-                                        </flux:badge>
+                                        </span>
 
                                         <flux:badge size="sm" variant="outline">
                                             {{ getFrequencyLabelList($deadline->taxModel->frequency) }}
                                         </flux:badge>
+
+                                        @if($hasMultiplePeriods)
+                                            <flux:badge size="sm" variant="outline">
+                                                {{ $groupedDeadlines->count() }} períodos
+                                            </flux:badge>
+                                        @endif
+
+                                        @if($groupedDeadlines->first(fn($d) => !empty($d->conditions)))
+                                            <flux:badge size="sm" variant="warning">
+                                                <flux:icon.information-circle class="size-3" />
+                                                Condiciones
+                                            </flux:badge>
+                                        @endif
 
                                         @if($deadline->deadline_time)
                                             <flux:badge size="sm" variant="outline">
@@ -110,7 +122,11 @@ if (!function_exists('isModelCompletedList')) {
                                         {{ $deadline->taxModel->name }}
                                     </flux:heading>
 
-                                    @if($deadline->taxModel->description)
+                                    @if($deadline->details)
+                                        <flux:text size="sm" class="mt-1 text-gray-600 dark:text-gray-400">
+                                            {{ Str::limit($deadline->details, 120) }}
+                                        </flux:text>
+                                    @elseif($deadline->taxModel->description)
                                         <flux:text size="sm" class="mt-1 text-gray-600 dark:text-gray-400">
                                             {{ Str::limit($deadline->taxModel->description, 100) }}
                                         </flux:text>

@@ -10,9 +10,13 @@ for ($month = 1; $month <= 12; $month++) {
     $monthDeadlines = $deadlines->filter(function ($deadline) use ($date) {
         return $deadline->deadline_date->month === $date->month;
     });
+
+    // Group by tax model to avoid showing the same model multiple times
+    $groupedDeadlines = $monthDeadlines->groupBy('tax_model_id')->map(fn($group) => $group->first());
+
     $months[] = [
         'date' => $date,
-        'deadlines' => $monthDeadlines,
+        'deadlines' => $groupedDeadlines,
     ];
 }
 
@@ -51,11 +55,11 @@ if (!function_exists('isModelCompletedYear')) {
             $monthDeadlines = $monthData['deadlines'];
         @endphp
 
-        <div class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+        <div class="rounded-lg documento-card p-4">
             <div class="mb-3 text-center">
-                <flux:heading size="sm" class="text-gray-900 dark:text-gray-100">
+                <h3 class="calendar-heading text-xl text-[#0a3d62] dark:text-white">
                     {{ $month->translatedFormat('F') }}
-                </flux:heading>
+                </h3>
             </div>
 
             <div class="space-y-1">
@@ -70,23 +74,32 @@ if (!function_exists('isModelCompletedYear')) {
                         @php
                             $taxModel = $deadline->taxModel;
                             $isCompleted = isModelCompletedYear($taxModel->id, $currentDate->year);
+                            $hasConditions = !empty($deadline->conditions);
                         @endphp
                         <div
                             wire:click="showModel({{ $taxModel->id }})"
-                            class="cursor-pointer rounded p-2 text-xs transition hover:opacity-80 {{ $isCompleted ? 'bg-green-600' : getCategoryColorYear($taxModel->category ?? 'otros') }} text-white"
+                            class="cursor-pointer rounded-lg p-3 text-xs {{ $isCompleted ? 'bg-green-600' : 'bg-[#0a3d62]' }} text-white"
                         >
-                            <div class="flex items-center justify-between gap-1">
-                                <div class="flex items-center gap-1">
-                                    <span class="font-semibold">{{ $taxModel->model_number }}</span>
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <div class="flex items-center gap-1">
+                                        <span class="font-mono font-bold tracking-wider">{{ $taxModel->model_number }}</span>
+                                        @if($hasConditions)
+                                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#f39c12" stroke-width="1.5">
+                                                <circle cx="5" cy="5" r="4"/>
+                                                <path d="M5 2.5v2M5 6.5v0.5"/>
+                                            </svg>
+                                        @endif
+                                    </div>
                                     @if($isCompleted)
                                         <flux:icon.check class="size-3" />
                                     @endif
                                 </div>
-                                <span>{{ $deadline->deadline_date->format('d') }}</span>
+                                <span class="font-semibold text-sm">{{ $deadline->deadline_date->format('d') }}</span>
                             </div>
                             @if($isCompleted)
-                                <div class="mt-0.5 text-xs opacity-90">
-                                    Completado
+                                <div class="mt-1 text-xs font-medium tracking-wide uppercase opacity-90">
+                                    ✓ Completado
                                 </div>
                             @endif
                         </div>

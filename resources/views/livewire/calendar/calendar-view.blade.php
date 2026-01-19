@@ -1,9 +1,9 @@
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+<div class="min-h-screen bg-[#fdfaf6] dark:bg-gray-900">
     {{-- Header --}}
-    <div class="bg-white dark:bg-gray-800 shadow">
+    <div class="bg-white dark:bg-gray-800 shadow-sm border-b-2 border-[#0a3d62] dark:border-gray-700">
         <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <flux:heading size="xl" class="text-gray-900 dark:text-white">Calendario Fiscal 2026</flux:heading>
+                <h1 class="calendar-heading text-4xl text-[#0a3d62] dark:text-white">Calendario Fiscal 2026</h1>
 
                 <div class="flex flex-wrap items-center gap-2">
                     {{-- Guest CTAs --}}
@@ -15,6 +15,28 @@
                             Registrarse Gratis
                         </flux:button>
                     @endguest
+
+                    {{-- Authenticated User Menu --}}
+                    @auth
+                        <flux:dropdown position="top" align="end">
+                            <flux:profile avatar="{{ 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->name) }}" name="{{ auth()->user()->name }}" />
+
+                            <flux:menu>
+                                <flux:menu.item icon="cog-6-tooth" href="{{ route('profile.edit') }}">{{ __('Settings') }}</flux:menu.item>
+
+                                <flux:menu.separator />
+
+                                <flux:menu.item icon="arrow-right-start-on-rectangle" href="{{ route('logout') }}"
+                                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                    {{ __('Log Out') }}
+                                </flux:menu.item>
+                            </flux:menu>
+                        </flux:dropdown>
+
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+                            @csrf
+                        </form>
+                    @endauth
                 </div>
             </div>
         </div>
@@ -24,39 +46,18 @@
         <div class="grid gap-6 lg:grid-cols-4">
             {{-- Filters Sidebar --}}
             <div class="lg:col-span-1">
-                <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+                <div class="rounded-lg documento-card p-6">
                     <div class="mb-4 flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <flux:heading size="lg">Filtros</flux:heading>
-                            @guest
-                                <flux:tooltip content="Regístrate para usar filtros avanzados" position="right" toggleable>
-                                    <flux:icon.lock-closed class="size-4 text-gray-400" />
-                                </flux:tooltip>
-                            @endguest
-                        </div>
+                        <h2 class="calendar-heading text-2xl text-[#0a3d62] dark:text-white">Filtros</h2>
                         @if(!empty($categories) || !empty($frequencies) || !empty($companyTypes) || !empty($tags) || $proximity)
                             <flux:button wire:click="clearFilters" variant="ghost" size="sm">Limpiar</flux:button>
                         @endif
                     </div>
 
-                    @guest
-                        <div class="mb-4 rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
-                            <flux:text class="mb-2 text-sm font-semibold text-blue-900 dark:text-blue-100">
-                                Desbloquea Filtros Avanzados
-                            </flux:text>
-                            <flux:text class="mb-3 text-xs text-blue-700 dark:text-blue-300">
-                                Regístrate gratis para filtrar por categoría, periodicidad, tipo de empresa y más.
-                            </flux:text>
-                            <flux:button href="{{ route('register') }}" variant="primary" size="xs" class="w-full">
-                                Registrarse Ahora
-                            </flux:button>
-                        </div>
-                    @endguest
-
-                    <div class="space-y-6" @guest class="pointer-events-none opacity-50" @endguest>
+                    <div class="space-y-6">
                         {{-- Category Filter --}}
                         <div class="relative">
-                            <flux:heading size="sm" class="mb-2">Categoría</flux:heading>
+                            <h3 class="calendar-heading text-lg text-[#0a3d62] dark:text-white mb-2">Categoría</h3>
                             <div class="space-y-2">
                                 @foreach($availableCategories as $category)
                                     <flux:checkbox
@@ -73,7 +74,7 @@
 
                         {{-- Frequency Filter --}}
                         <div class="relative">
-                            <flux:heading size="sm" class="mb-2">Periodicidad</flux:heading>
+                            <h3 class="calendar-heading text-lg text-[#0a3d62] dark:text-white mb-2">Periodicidad</h3>
                             <div class="space-y-2">
                                 @foreach($availableFrequencies as $frequency)
                                     <flux:checkbox
@@ -90,7 +91,7 @@
 
                         {{-- Company Type Filter --}}
                         <div class="relative">
-                            <flux:heading size="sm" class="mb-2">Tipo de Empresa</flux:heading>
+                            <h3 class="calendar-heading text-lg text-[#0a3d62] dark:text-white mb-2">Tipo de Empresa</h3>
                             <div class="space-y-2">
                                 @foreach($availableCompanyTypes as $type)
                                     <flux:checkbox
@@ -112,7 +113,7 @@
 
                         {{-- Proximity Filter --}}
                         <div class="relative">
-                            <flux:heading size="sm" class="mb-2">Próximos</flux:heading>
+                            <h3 class="calendar-heading text-lg text-[#0a3d62] dark:text-white mb-2">Próximos</h3>
                             <flux:select wire:model.live="proximity" placeholder="Seleccionar plazo" :disabled="!$this->canUseFilters()">
                                 <option value="">Todos</option>
                                 <option value="next_7_days">Próximos 7 días</option>
@@ -127,7 +128,7 @@
 
                             {{-- Completion Filter --}}
                             <div>
-                                <flux:heading size="sm" class="mb-2">Estado</flux:heading>
+                                <h3 class="calendar-heading text-lg text-[#0a3d62] dark:text-white mb-2">Estado</h3>
                                 <flux:checkbox
                                     wire:model.live="showOnlyIncomplete"
                                     label="Solo mostrar pendientes"
@@ -140,11 +141,19 @@
 
                             {{-- Completion Filter (Locked) --}}
                             <div class="relative">
-                                <flux:heading size="sm" class="mb-2">Estado</flux:heading>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <h3 class="calendar-heading text-lg text-[#0a3d62] dark:text-white">Estado</h3>
+                                    <flux:tooltip content="Regístrate para usar este filtro" position="right" toggleable>
+                                        <flux:icon.lock-closed class="size-4 text-gray-400" />
+                                    </flux:tooltip>
+                                </div>
                                 <flux:checkbox
                                     label="Solo mostrar pendientes"
                                     disabled
                                 />
+                                <flux:text class="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                                    Regístrate gratis para marcar modelos como completados
+                                </flux:text>
                             </div>
                         @endguest
                     </div>

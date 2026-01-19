@@ -34,9 +34,12 @@ if (!function_exists('getCalendarWeeksMonth')) {
 if (!function_exists('getDeadlinesForDateMonth')) {
     function getDeadlinesForDateMonth($deadlines, Carbon $date)
     {
-        return $deadlines->filter(function ($deadline) use ($date) {
+        $filtered = $deadlines->filter(function ($deadline) use ($date) {
             return $deadline->deadline_date->isSameDay($date);
         });
+
+        // Group by tax model to avoid showing the same model multiple times
+        return $filtered->groupBy('tax_model_id')->map(fn($group) => $group->first());
     }
 }
 
@@ -70,18 +73,18 @@ if (!function_exists('isModelCompletedMonth')) {
 $calendarWeeks = getCalendarWeeksMonth($currentDate);
 @endphp
 
-<div class="overflow-hidden">
+<div class="overflow-hidden rounded-lg border border-[#0a3d62]/20">
     {{-- Weekday Headers --}}
-    <div class="grid grid-cols-7 gap-px bg-gray-200 dark:bg-gray-700">
+    <div class="grid grid-cols-7 gap-px bg-[#0a3d62]/10 dark:bg-gray-700">
         @foreach(['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'] as $day)
-            <div class="bg-white p-2 text-center text-sm font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+            <div class="bg-[#fdfaf6] p-3 text-center font-semibold text-[#0a3d62] dark:bg-gray-800 dark:text-gray-300" style="font-family: var(--font-serif);">
                 {{ $day }}
             </div>
         @endforeach
     </div>
 
     {{-- Calendar Grid --}}
-    <div class="grid grid-cols-7 gap-px bg-gray-200 dark:bg-gray-700">
+    <div class="grid grid-cols-7 gap-px bg-[#0a3d62]/10 dark:bg-gray-700">
         @foreach($calendarWeeks as $week)
             @foreach($week as $date)
                 @php
@@ -90,9 +93,9 @@ $calendarWeeks = getCalendarWeeksMonth($currentDate);
                     $dayDeadlines = getDeadlinesForDateMonth($deadlines, $date);
                 @endphp
 
-                <div class="min-h-[100px] bg-white p-2 dark:bg-gray-800 {{ !$isCurrentMonth ? 'opacity-40' : '' }}">
+                <div class="min-h-[100px] bg-[#fdfaf6] p-2 dark:bg-gray-800 {{ !$isCurrentMonth ? 'opacity-40' : '' }}">
                     <div class="mb-1 flex items-center justify-between">
-                        <span class="text-sm font-medium {{ $isToday ? 'flex size-6 items-center justify-center rounded-full bg-blue-500 text-white' : ($isCurrentMonth ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400') }}">
+                        <span class="text-sm font-semibold {{ $isToday ? 'flex size-7 items-center justify-center rounded-full bg-[#0a3d62] text-white font-mono' : ($isCurrentMonth ? 'text-[#0a3d62] dark:text-gray-100' : 'text-gray-400') }}">
                             {{ $date->day }}
                         </span>
                     </div>
@@ -103,13 +106,22 @@ $calendarWeeks = getCalendarWeeksMonth($currentDate);
                                 @php
                                     $taxModel = $deadline->taxModel;
                                     $isCompleted = isModelCompletedMonth($taxModel->id, $currentDate->year);
+                                    $hasConditions = !empty($deadline->conditions);
                                 @endphp
                                 <div
                                     wire:click="showModel({{ $taxModel->id }})"
-                                    class="cursor-pointer rounded px-2 py-1 text-xs transition hover:opacity-80 {{ $isCompleted ? 'bg-green-600' : getCategoryColorMonth($taxModel->category ?? 'otros') }} text-white"
+                                    class="cursor-pointer rounded px-2 py-1 text-xs {{ $isCompleted ? 'bg-green-600' : 'bg-[#0a3d62]' }} text-white"
                                 >
                                     <div class="flex items-center justify-between gap-1">
-                                        <span>{{ $taxModel->model_number }}</span>
+                                        <div class="flex items-center gap-1">
+                                            <span class="font-mono font-bold">{{ $taxModel->model_number }}</span>
+                                            @if($hasConditions)
+                                                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#f39c12" stroke-width="1.5">
+                                                    <circle cx="5" cy="5" r="4"/>
+                                                    <path d="M5 2.5v2M5 6.5v0.5"/>
+                                                </svg>
+                                            @endif
+                                        </div>
                                         @if($isCompleted)
                                             <flux:icon.check class="size-3" />
                                         @endif

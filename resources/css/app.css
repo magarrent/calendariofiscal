@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import '../../vendor/livewire/flux/dist/flux.css';
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -9,7 +10,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'DM Sans', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-serif: 'Cormorant Garamond', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
 
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
@@ -64,3 +66,144 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+/* Spanish Administrative Elegance Theme */
+@layer base {
+    :root {
+        --official-blue: #0a3d62;
+        --official-red: #c0392b;
+        --official-gold: #d4af37;
+        --paper-bg: #fdfaf6;
+        --stamp-border: #c0392b;
+    }
+
+    .dark {
+        --paper-bg: #1a1a1a;
+    }
+}
+
+@layer components {
+    /* Heading styles with serif font */
+    .calendar-heading {
+        font-family: var(--font-serif);
+        font-weight: 600;
+        letter-spacing: 0.01em;
+    }
+
+    /* Modelo stamp style */
+    .modelo-stamp {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 1rem;
+        border: 3px solid var(--stamp-border);
+        border-radius: 0.25rem;
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: 1.25rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        position: relative;
+        animation: stamp-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* Document card style */
+    .documento-card {
+        background: var(--paper-bg);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Official badge styles */
+    .badge-oficial {
+        background: linear-gradient(135deg, var(--official-blue) 0%, #1565a8 100%);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.25rem;
+        font-weight: 600;
+        font-size: 0.75rem;
+        letter-spacing: 0.025em;
+        text-transform: uppercase;
+    }
+
+    .badge-vencido {
+        background: linear-gradient(135deg, var(--official-red) 0%, #e74c3c 100%);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.25rem;
+        font-weight: 600;
+        font-size: 0.75rem;
+        letter-spacing: 0.025em;
+        text-transform: uppercase;
+    }
+
+    .badge-proximo {
+        background: linear-gradient(135deg, var(--official-gold) 0%, #f39c12 100%);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.25rem;
+        font-weight: 600;
+        font-size: 0.75rem;
+        letter-spacing: 0.025em;
+        text-transform: uppercase;
+    }
+
+    /* Section divider with decorative dots */
+    .section-divider {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 1.5rem 0;
+    }
+
+    .section-divider::before,
+    .section-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--official-blue), transparent);
+    }
+
+    .section-divider-dot {
+        width: 4px;
+        height: 4px;
+        background: var(--official-blue);
+        border-radius: 50%;
+    }
+}
+
+@layer utilities {
+    /* Animations */
+    @keyframes stamp-in {
+        0% {
+            opacity: 0;
+            transform: scale(0.8) rotate(-5deg);
+        }
+        50% {
+            transform: scale(1.1) rotate(2deg);
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+        }
+    }
+
+    @keyframes slide-in {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+}

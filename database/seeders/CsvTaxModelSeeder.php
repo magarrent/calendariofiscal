@@ -55,8 +55,11 @@ class CsvTaxModelSeeder extends Seeder
             foreach ($groupedData as $modelNumber => $group) {
                 $modelData = $group['model_data'];
 
-                // Parse applicable_to from ambito field
-                $applicableTo = $this->parseApplicableTo($modelData['ambito'] ?? '');
+                // Parse applicable_to from ambito field and conditions
+                $applicableTo = $this->parseApplicableTo(
+                    $modelData['ambito'] ?? '',
+                    $modelData['condicion'] ?? ''
+                );
 
                 // Infer frequency from the deadlines
                 $frequency = $this->inferFrequency($group['deadlines']);
@@ -143,7 +146,7 @@ class CsvTaxModelSeeder extends Seeder
         $this->command->info('Tax models seeded successfully!');
     }
 
-    private function parseApplicableTo(string $ambito): array
+    private function parseApplicableTo(string $ambito, string $condicion = ''): array
     {
         $mapping = [
             'Autónomo' => 'autonomo',
@@ -165,7 +168,59 @@ class CsvTaxModelSeeder extends Seeder
             }
         }
 
+        // Filter based on conditions that clearly exclude certain types
+        $result = $this->filterByConditions($result, $condicion);
+
+        // If no match and ambito is empty, don't default to all - return empty
+        if (empty($result) && empty($ambito)) {
+            return [];
+        }
+
+        // If no match but ambito had content, default to all
         return array_unique(array_filter($result)) ?: ['autonomo', 'pyme', 'large_corp'];
+    }
+
+    private function filterByConditions(array $applicableTo, string $condicion): array
+    {
+        if (empty($condicion)) {
+            return $applicableTo;
+        }
+
+        $condicionLower = mb_strtolower($condicion);
+
+        // Exclusions for autonomo
+        $autonomoExclusions = [
+            'solo grupos de entidades',
+            'solo entidades financieras',
+            'entidades financieras/aseguradoras',
+            'solo empresas del sector',
+            'solo grandes empresas',
+        ];
+
+        // Exclusions for pyme
+        $pymeExclusions = [
+            'solo entidades financieras',
+            'entidades financieras/aseguradoras',
+            'solo grandes empresas',
+        ];
+
+        // Check if autonomo should be excluded
+        foreach ($autonomoExclusions as $exclusion) {
+            if (str_contains($condicionLower, $exclusion)) {
+                $applicableTo = array_diff($applicableTo, ['autonomo']);
+                break;
+            }
+        }
+
+        // Check if pyme should be excluded
+        foreach ($pymeExclusions as $exclusion) {
+            if (str_contains($condicionLower, $exclusion)) {
+                $applicableTo = array_diff($applicableTo, ['pyme']);
+                break;
+            }
+        }
+
+        return array_values($applicableTo);
     }
 
     private function inferFrequency(array $deadlines): string

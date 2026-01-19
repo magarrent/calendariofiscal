@@ -18,8 +18,7 @@
                 <div class="flex items-center justify-between rounded-lg border border-gray-200 p-3 dark:border-gray-700">
                     <div class="flex items-center gap-3">
                         <flux:checkbox
-                            wire:click="toggleReminder({{ $days }})"
-                            :checked="$reminder['enabled']"
+                            wire:model.live="reminders.{{ $days }}.enabled"
                         />
                         <flux:text>
                             {{ $days }} {{ $days === 1 ? 'día' : 'días' }} antes
@@ -37,8 +36,7 @@
 
             <div>
                 <flux:heading size="sm" class="mb-2">Vista previa de notificación</flux:heading>
-                <flux:button wire:click="$dispatch('preview-notification', { taxModelId: {{ $taxModelId }} })" variant="outline" size="sm" class="w-full">
-                    <flux:icon name="envelope" class="mr-2" variant="micro" />
+                <flux:button wire:click="$dispatch('preview-notification', { taxModelId: {{ $taxModelId }} })" variant="outline" size="sm" class="w-full" icon="envelope">
                     Enviar notificación de prueba
                 </flux:button>
             </div>

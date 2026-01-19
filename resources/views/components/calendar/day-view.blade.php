@@ -1,20 +1,23 @@
 @props(['deadlines', 'currentDate'])
 
 @php
-    $deadlinesForToday = $deadlines->filter(fn($deadline) => $deadline->deadline_date->isSameDay($currentDate));
+    $deadlinesForToday = $deadlines
+        ->filter(fn($deadline) => $deadline->deadline_date->isSameDay($currentDate))
+        ->groupBy('tax_model_id')
+        ->map(fn($group) => $group->first());
 @endphp
 
 <div>
     {{-- Day Header --}}
-    <div class="mb-6 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+    <div class="mb-6 rounded-lg documento-card p-6">
         <div class="text-center">
-            <div class="text-sm font-medium text-gray-500 dark:text-gray-400">
+            <div class="text-sm font-medium text-[#0a3d62] dark:text-gray-400 uppercase tracking-wider">
                 {{ $currentDate->translatedFormat('l') }}
             </div>
-            <div class="mt-1 text-4xl font-bold text-gray-900 dark:text-gray-100">
+            <div class="mt-2 text-5xl font-bold text-[#0a3d62] dark:text-gray-100 font-mono">
                 {{ $currentDate->day }}
             </div>
-            <div class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            <div class="mt-2 calendar-heading text-lg text-[#0a3d62] dark:text-gray-400">
                 {{ $currentDate->translatedFormat('F Y') }}
             </div>
         </div>
@@ -51,7 +54,7 @@
 
                 <div
                     wire:click="showModel({{ $deadline->taxModel->id }})"
-                    class="cursor-pointer rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition hover:border-gray-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600"
+                    class="cursor-pointer rounded-lg documento-card p-6"
                 >
                     <div class="flex items-start justify-between">
                         <div class="flex-1">
@@ -64,6 +67,13 @@
                                     {{ $frequencyLabel }}
                                 </flux:badge>
 
+                                @if($deadline->conditions)
+                                    <flux:badge size="sm" variant="warning">
+                                        <flux:icon.information-circle class="size-3" />
+                                        Condiciones
+                                    </flux:badge>
+                                @endif
+
                                 @if($deadline->deadline_time)
                                     <flux:badge size="sm" variant="outline">
                                         <flux:icon.clock class="size-3" />
@@ -72,9 +82,9 @@
                                 @endif
                             </div>
 
-                            <flux:heading size="lg" class="mt-3">
+                            <h3 class="calendar-heading text-xl text-[#0a3d62] dark:text-white mt-3">
                                 {{ $deadline->taxModel->name }}
-                            </flux:heading>
+                            </h3>
 
                             @if($deadline->taxModel->description)
                                 <flux:text class="mt-2 text-gray-600 dark:text-gray-400">

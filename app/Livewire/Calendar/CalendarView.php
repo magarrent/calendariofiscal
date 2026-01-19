@@ -19,7 +19,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class CalendarView extends Component
 {
     #[Session]
-    public string $view = 'year';
+    public string $view = 'month';
 
     #[Session]
     public array $categories = [];
@@ -235,7 +235,7 @@ class CalendarView extends Component
 
     public function canUseFilters(): bool
     {
-        return auth()->check();
+        return true; // Basic filters are available to all users
     }
 
     public function canExport(): bool
