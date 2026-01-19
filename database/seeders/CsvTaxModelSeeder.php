@@ -42,6 +42,7 @@ class CsvTaxModelSeeder extends Seeder
         $rowCount = 0;
         $parsedCount = 0;
         $errorCount = 0;
+        $skippedEventBased = 0;
 
         // Store tax models grouped by model number to avoid duplicates
         $taxModelsCache = [];
@@ -68,9 +69,20 @@ class CsvTaxModelSeeder extends Seeder
                 $periodStart = $this->parseDate($data['plazo_inicio_2026'] ?? '');
                 $periodEnd = $this->parseDate($data['plazo_fin_2026'] ?? '');
 
+                // Skip event-based models (censal, cuando proceda, etc.) without dates
                 if (! $periodStart || ! $periodEnd) {
-                    $this->command->warn("Skipping row {$rowCount}: Invalid dates");
-                    $errorCount++;
+                    $periodicidad = strtolower($data['periodicidad'] ?? '');
+                    $isEventBased = str_contains($periodicidad, 'cuando proceda') ||
+                        str_contains($periodicidad, 'no periódica') ||
+                        empty(trim($data['plazo_inicio_2026'] ?? ''));
+
+                    if ($isEventBased) {
+                        $this->command->comment("Skipping row {$rowCount} (Modelo {$data['modelo']}): Event-based model (no fixed dates)");
+                        $skippedEventBased++;
+                    } else {
+                        $this->command->warn("Skipping row {$rowCount}: Invalid dates");
+                        $errorCount++;
+                    }
 
                     continue;
                 }
@@ -133,6 +145,7 @@ class CsvTaxModelSeeder extends Seeder
         $this->command->info('✅ CSV parsing complete!');
         $this->command->info("Total rows processed: {$rowCount}");
         $this->command->info("Successfully parsed: {$parsedCount}");
+        $this->command->info("Skipped event-based models: {$skippedEventBased}");
         $this->command->info("Errors: {$errorCount}");
         $this->command->info('Tax models created: '.count($taxModelsCache));
     }

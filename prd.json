@@ -9,9 +9,10 @@
       "description": "Restore Calendar Views",
       "acceptanceCriteria": [],
       "priority": 1,
-      "passes": false,
+      "passes": true,
       "labels": [],
-      "dependsOn": []
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-015",
@@ -19,14 +20,15 @@
       "description": "Browser Verification Testing",
       "acceptanceCriteria": [],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "labels": [],
-      "dependsOn": []
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
     }
   ],
   "metadata": {
     "createdAt": "2026-01-19T08:48:46.336Z",
     "version": "1.0.0",
-    "updatedAt": "2026-01-19T08:48:52.852Z"
+    "updatedAt": "2026-01-19T09:05:09.950Z"
   }
 }

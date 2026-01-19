@@ -1,6 +1,14 @@
 {
+  "permissions": {
+    "allow": [
+      "mcp__laravel-boost__get-absolute-url",
+      "Bash(awk:*)",
+      "mcp__laravel-boost__search-docs",
+      "mcp__laravel-boost__tinker"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "laravel-boost"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }

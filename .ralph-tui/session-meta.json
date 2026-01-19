@@ -1,14 +1,15 @@
 {
   "id": "f412593d-581e-45ae-8c1d-ccbdaad2d273",
-  "status": "running",
+  "status": "completed",
   "startedAt": "2026-01-19T08:48:48.742Z",
-  "updatedAt": "2026-01-19T08:48:48.742Z",
+  "updatedAt": "2026-01-19T09:18:55.617Z",
   "agentPlugin": "claude",
   "trackerPlugin": "json",
   "prdPath": "/Users/marc/Documents/projects/calendariofiscal/prd.json",
-  "currentIteration": 0,
+  "currentIteration": 2,
   "maxIterations": 10,
   "totalTasks": 0,
-  "tasksCompleted": 0,
-  "cwd": "/Users/marc/Documents/projects/calendariofiscal"
+  "tasksCompleted": 2,
+  "cwd": "/Users/marc/Documents/projects/calendariofiscal",
+  "endedAt": "2026-01-19T09:18:55.617Z"
 }
