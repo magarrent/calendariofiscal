@@ -3,17 +3,20 @@
 namespace App\Livewire\Calendar;
 
 use App\Models\TaxModel;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class ModelDetail extends Component
 {
-    public int $modelId;
+    public ?int $modelId = null;
 
     public bool $showDetails = false;
 
-    public function mount(int $modelId): void
+    #[On('load-model')]
+    public function loadModel(int $modelId): void
     {
         $this->modelId = $modelId;
+        $this->showDetails = false;
     }
 
     public function getTaxModel(): ?TaxModel

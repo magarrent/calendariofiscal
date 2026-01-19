@@ -289,7 +289,5 @@
     </div>
 
     {{-- Model Detail Modal --}}
-    @if($selectedModelId)
-        <livewire:calendar.model-detail :model-id="$selectedModelId" wire:key="model-{{ $selectedModelId }}" />
-    @endif
+    <livewire:calendar.model-detail />
 </div>

@@ -6,6 +6,7 @@ use App\Exports\DeadlinesExport;
 use App\Models\Deadline;
 use App\Models\TaxModel;
 use Carbon\Carbon;
+use Flux\Flux;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Session;
 use Livewire\Component;
@@ -53,7 +54,8 @@ class CalendarView extends Component
     public function showModel(int $modelId): void
     {
         $this->selectedModelId = $modelId;
-        $this->dispatch('open-modal', 'model-detail');
+        $this->dispatch('load-model', modelId: $modelId);
+        Flux::modal('model-detail')->show();
     }
 
     public function isModelCompleted(int $taxModelId): bool
