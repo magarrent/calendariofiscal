@@ -1,8 +1,9 @@
+configVersion = "2.1"
 maxIterations = 10
 agent = "claude"
 tracker = "beads-bv"
 autoCommit = false
-subagentTracingDetail = "full"
+subagentTracingDetail = "moderate"
 
 [agentOptions]
 [trackerOptions]

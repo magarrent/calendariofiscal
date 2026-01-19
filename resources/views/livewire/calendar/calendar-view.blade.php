@@ -154,13 +154,69 @@
             {{-- Calendar Content --}}
             <div class="lg:col-span-3">
                 <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+                    {{-- View Switcher --}}
+                    <div class="mb-6 flex justify-center">
+                        <div class="inline-flex rounded-lg border border-gray-200 dark:border-gray-700">
+                            <flux:button
+                                wire:click="$set('view', 'day')"
+                                variant="{{ $view === 'day' ? 'primary' : 'ghost' }}"
+                                size="sm"
+                                class="rounded-r-none border-r border-gray-200 dark:border-gray-700"
+                            >
+                                Día
+                            </flux:button>
+                            <flux:button
+                                wire:click="$set('view', 'week')"
+                                variant="{{ $view === 'week' ? 'primary' : 'ghost' }}"
+                                size="sm"
+                                class="rounded-none border-r border-gray-200 dark:border-gray-700"
+                            >
+                                Semana
+                            </flux:button>
+                            <flux:button
+                                wire:click="$set('view', 'month')"
+                                variant="{{ $view === 'month' ? 'primary' : 'ghost' }}"
+                                size="sm"
+                                class="rounded-none border-r border-gray-200 dark:border-gray-700"
+                            >
+                                Mes
+                            </flux:button>
+                            <flux:button
+                                wire:click="$set('view', 'year')"
+                                variant="{{ $view === 'year' ? 'primary' : 'ghost' }}"
+                                size="sm"
+                                class="rounded-none border-r border-gray-200 dark:border-gray-700"
+                            >
+                                Año
+                            </flux:button>
+                            <flux:button
+                                wire:click="$set('view', 'list')"
+                                variant="{{ $view === 'list' ? 'primary' : 'ghost' }}"
+                                size="sm"
+                                class="rounded-l-none"
+                            >
+                                Lista
+                            </flux:button>
+                        </div>
+                    </div>
+
                     {{-- Navigation --}}
                     <div class="mb-6 flex items-center justify-between">
                         <flux:button wire:click="previousPeriod" variant="ghost" icon="chevron-left">Anterior</flux:button>
 
                         <div class="text-center">
                             <flux:heading size="lg">
-                                {{ $currentDate->year }}
+                                @if($view === 'day')
+                                    {{ $currentDate->isoFormat('D [de] MMMM [de] YYYY') }}
+                                @elseif($view === 'week')
+                                    Semana {{ $currentDate->weekOfYear }} - {{ $currentDate->year }}
+                                @elseif($view === 'month')
+                                    {{ $currentDate->isoFormat('MMMM YYYY') }}
+                                @elseif($view === 'list')
+                                    {{ $currentDate->year }}
+                                @else
+                                    {{ $currentDate->year }}
+                                @endif
                             </flux:heading>
                         </div>
 
@@ -215,8 +271,18 @@
                         @endif
                     </div>
 
-                    {{-- Year View Calendar --}}
-                    <livewire:calendar.year-view :deadlines="$deadlines" :current-date="$currentDate" />
+                    {{-- Dynamic Calendar View --}}
+                    @if($view === 'day')
+                        <x-calendar.day-view :deadlines="$deadlines" :current-date="$currentDate" />
+                    @elseif($view === 'week')
+                        <x-calendar.week-view :deadlines="$deadlines" :current-date="$currentDate" />
+                    @elseif($view === 'month')
+                        <x-calendar.month-view :deadlines="$deadlines" :current-date="$currentDate" />
+                    @elseif($view === 'list')
+                        <x-calendar.list-view :deadlines="$deadlines" :current-date="$currentDate" />
+                    @else
+                        <x-calendar.year-view :deadlines="$deadlines" :current-date="$currentDate" />
+                    @endif
                 </div>
             </div>
         </div>

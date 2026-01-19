@@ -38,10 +38,21 @@ test('calendar defaults to year view', function () {
         ->assertStatus(200);
 });
 
-test('calendar only supports year view', function () {
-    Livewire::test('calendar.calendar-view')
-        ->assertSet('view', 'year')
-        ->assertStatus(200);
+test('calendar supports day, week, month, and year views', function () {
+    $component = Livewire::test('calendar.calendar-view')
+        ->assertSet('view', 'year');
+
+    $component->set('view', 'day')
+        ->assertSet('view', 'day');
+
+    $component->set('view', 'week')
+        ->assertSet('view', 'week');
+
+    $component->set('view', 'month')
+        ->assertSet('view', 'month');
+
+    $component->set('view', 'year')
+        ->assertSet('view', 'year');
 });
 
 test('calendar filters by category', function () {
@@ -63,7 +74,8 @@ test('calendar filters by frequency', function () {
 });
 
 test('calendar navigation works for year view', function () {
-    $component = Livewire::test('calendar.calendar-view');
+    $component = Livewire::test('calendar.calendar-view')
+        ->set('view', 'year');
 
     $initialYear = $component->get('currentDate')->year;
 
@@ -77,6 +89,48 @@ test('calendar navigation works for year view', function () {
     expect($component->get('currentDate')->year)->toBe(now()->year);
 
     $component->assertStatus(200);
+});
+
+test('calendar navigation works for month view', function () {
+    $component = Livewire::test('calendar.calendar-view')
+        ->set('view', 'month');
+
+    $initialMonth = $component->get('currentDate')->month;
+    $initialYear = $component->get('currentDate')->year;
+
+    $component->call('nextPeriod');
+    $currentDate = $component->get('currentDate');
+    expect($currentDate->month)->toBe($initialMonth === 12 ? 1 : $initialMonth + 1);
+
+    $component->call('previousPeriod');
+    expect($component->get('currentDate')->month)->toBe($initialMonth);
+    expect($component->get('currentDate')->year)->toBe($initialYear);
+});
+
+test('calendar navigation works for week view', function () {
+    $component = Livewire::test('calendar.calendar-view')
+        ->set('view', 'week');
+
+    $initialWeek = $component->get('currentDate')->weekOfYear;
+
+    $component->call('nextPeriod');
+    expect($component->get('currentDate')->weekOfYear)->not->toBe($initialWeek);
+
+    $component->call('today');
+    expect($component->get('currentDate')->weekOfYear)->toBe(now()->weekOfYear);
+});
+
+test('calendar navigation works for day view', function () {
+    $component = Livewire::test('calendar.calendar-view')
+        ->set('view', 'day');
+
+    $initialDay = $component->get('currentDate')->day;
+
+    $component->call('nextPeriod');
+    expect($component->get('currentDate')->day)->not->toBe($initialDay);
+
+    $component->call('today');
+    expect($component->get('currentDate')->day)->toBe(now()->day);
 });
 
 test('calendar clear filters works', function () {

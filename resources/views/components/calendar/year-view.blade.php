@@ -1,42 +1,23 @@
-<?php
+@props(['deadlines', 'currentDate'])
 
-use Livewire\Component;
-use Illuminate\Support\Collection;
+@php
 use Carbon\Carbon;
 
-new class extends Component
-{
-    public Collection $deadlines;
-    public Carbon $currentDate;
+// Generate months data
+$months = [];
+for ($month = 1; $month <= 12; $month++) {
+    $date = Carbon::create($currentDate->year, $month, 1);
+    $monthDeadlines = $deadlines->filter(function ($deadline) use ($date) {
+        return $deadline->deadline_date->month === $date->month;
+    });
+    $months[] = [
+        'date' => $date,
+        'deadlines' => $monthDeadlines,
+    ];
+}
 
-    public function mount(Collection $deadlines, Carbon $currentDate): void
-    {
-        $this->deadlines = $deadlines;
-        $this->currentDate = $currentDate;
-    }
-
-    public function getMonthsData(): array
-    {
-        $months = [];
-        for ($month = 1; $month <= 12; $month++) {
-            $date = Carbon::create($this->currentDate->year, $month, 1);
-            $months[] = [
-                'date' => $date,
-                'deadlines' => $this->getDeadlinesForMonth($date),
-            ];
-        }
-
-        return $months;
-    }
-
-    public function getDeadlinesForMonth(Carbon $date): Collection
-    {
-        return $this->deadlines->filter(function ($deadline) use ($date) {
-            return $deadline->deadline_date->month === $date->month;
-        });
-    }
-
-    public function getCategoryColor(string $category): string
+if (!function_exists('getCategoryColorYear')) {
+    function getCategoryColorYear(string $category): string
     {
         return match($category) {
             'iva' => 'bg-blue-500',
@@ -46,23 +27,25 @@ new class extends Component
             default => 'bg-gray-500',
         };
     }
+}
 
-    public function isModelCompleted(int $taxModelId): bool
+if (!function_exists('isModelCompletedYear')) {
+    function isModelCompletedYear(int $taxModelId, int $year): bool
     {
-        if (! auth()->check()) {
+        if (!auth()->check()) {
             return false;
         }
 
         return auth()->user()->hasCompletedModel(
             \App\Models\TaxModel::find($taxModelId),
-            $this->currentDate->year
+            $year
         );
     }
-};
-?>
+}
+@endphp
 
 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-    @foreach($this->getMonthsData() as $monthData)
+    @foreach($months as $monthData)
         @php
             $month = $monthData['date'];
             $monthDeadlines = $monthData['deadlines'];
@@ -85,15 +68,16 @@ new class extends Component
                 @else
                     @foreach($monthDeadlines->take(5) as $deadline)
                         @php
-                            $isCompleted = $this->isModelCompleted($deadline->taxModel->id);
+                            $taxModel = $deadline->taxModel;
+                            $isCompleted = isModelCompletedYear($taxModel->id, $currentDate->year);
                         @endphp
                         <div
-                            wire:click="$parent.showModel({{ $deadline->taxModel->id }})"
-                            class="cursor-pointer rounded p-2 text-xs transition hover:opacity-80 {{ $isCompleted ? 'bg-green-600' : $this->getCategoryColor($deadline->taxModel->category ?? 'otros') }} text-white"
+                            wire:click="showModel({{ $taxModel->id }})"
+                            class="cursor-pointer rounded p-2 text-xs transition hover:opacity-80 {{ $isCompleted ? 'bg-green-600' : getCategoryColorYear($taxModel->category ?? 'otros') }} text-white"
                         >
                             <div class="flex items-center justify-between gap-1">
                                 <div class="flex items-center gap-1">
-                                    <span class="font-semibold">{{ $deadline->taxModel->model_number }}</span>
+                                    <span class="font-semibold">{{ $taxModel->model_number }}</span>
                                     @if($isCompleted)
                                         <flux:icon.check class="size-3" />
                                     @endif

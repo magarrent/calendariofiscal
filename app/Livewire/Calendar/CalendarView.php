@@ -17,6 +17,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CalendarView extends Component
 {
+    #[Session]
     public string $view = 'year';
 
     #[Session]
@@ -80,16 +81,33 @@ class CalendarView extends Component
     public function today(): void
     {
         $this->currentDate = Carbon::now();
+        $this->year = (int) $this->currentDate->year;
     }
 
     public function nextPeriod(): void
     {
-        $this->currentDate = $this->currentDate->addYear();
+        match ($this->view) {
+            'day' => $this->currentDate = $this->currentDate->addDay(),
+            'week' => $this->currentDate = $this->currentDate->addWeek(),
+            'month' => $this->currentDate = $this->currentDate->addMonth(),
+            'list' => $this->currentDate = $this->currentDate->addYear(),
+            'year' => $this->currentDate = $this->currentDate->addYear(),
+            default => $this->currentDate = $this->currentDate->addYear(),
+        };
+        $this->year = (int) $this->currentDate->year;
     }
 
     public function previousPeriod(): void
     {
-        $this->currentDate = $this->currentDate->subYear();
+        match ($this->view) {
+            'day' => $this->currentDate = $this->currentDate->subDay(),
+            'week' => $this->currentDate = $this->currentDate->subWeek(),
+            'month' => $this->currentDate = $this->currentDate->subMonth(),
+            'list' => $this->currentDate = $this->currentDate->subYear(),
+            'year' => $this->currentDate = $this->currentDate->subYear(),
+            default => $this->currentDate = $this->currentDate->subYear(),
+        };
+        $this->year = (int) $this->currentDate->year;
     }
 
     public function getFilteredDeadlinesProperty(): Collection
@@ -98,9 +116,33 @@ class CalendarView extends Component
             ->with('taxModel')
             ->byYear($this->year);
 
-        // Apply date range for year view
-        $startDate = $this->currentDate->copy()->startOfYear();
-        $endDate = $this->currentDate->copy()->endOfYear();
+        // Apply date range based on view mode
+        [$startDate, $endDate] = match ($this->view) {
+            'day' => [
+                $this->currentDate->copy()->startOfDay(),
+                $this->currentDate->copy()->endOfDay(),
+            ],
+            'week' => [
+                $this->currentDate->copy()->startOfWeek(),
+                $this->currentDate->copy()->endOfWeek(),
+            ],
+            'month' => [
+                $this->currentDate->copy()->startOfMonth(),
+                $this->currentDate->copy()->endOfMonth(),
+            ],
+            'list' => [
+                $this->currentDate->copy()->startOfYear(),
+                $this->currentDate->copy()->endOfYear(),
+            ],
+            'year' => [
+                $this->currentDate->copy()->startOfYear(),
+                $this->currentDate->copy()->endOfYear(),
+            ],
+            default => [
+                $this->currentDate->copy()->startOfYear(),
+                $this->currentDate->copy()->endOfYear(),
+            ],
+        };
 
         $query->byDateRange($startDate, $endDate);
 

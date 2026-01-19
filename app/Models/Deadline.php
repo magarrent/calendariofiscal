@@ -14,6 +14,10 @@ class Deadline extends Model
         'tax_model_id',
         'deadline_date',
         'deadline_time',
+        'period_start',
+        'period_end',
+        'days_to_complete',
+        'period_description',
         'year',
         'notes',
     ];
@@ -23,6 +27,9 @@ class Deadline extends Model
         return [
             'deadline_date' => 'date',
             'deadline_time' => 'datetime:H:i',
+            'period_start' => 'date',
+            'period_end' => 'date',
+            'days_to_complete' => 'integer',
             'year' => 'integer',
         ];
     }

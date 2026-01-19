@@ -1,71 +1,38 @@
 {
   "version": 1,
-  "sessionId": "548888ff-522b-4e18-a0d3-5d38331092f2",
+  "sessionId": "f412593d-581e-45ae-8c1d-ccbdaad2d273",
   "status": "running",
-  "startedAt": "2026-01-16T15:43:15.899Z",
-  "updatedAt": "2026-01-16T15:53:58.639Z",
-  "currentIteration": 2,
+  "startedAt": "2026-01-19T08:48:48.909Z",
+  "updatedAt": "2026-01-19T08:49:40.098Z",
+  "currentIteration": 0,
   "maxIterations": 10,
-  "tasksCompleted": 2,
+  "tasksCompleted": 0,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
     "plugin": "json",
     "prdPath": "/Users/marc/Documents/projects/calendariofiscal/prd.json",
-    "totalTasks": 4,
+    "totalTasks": 2,
     "tasks": [
       {
-        "id": "US-010",
-        "title": "Enhanced Guest User Experience",
-        "status": "completed",
-        "completedInSession": true
-      },
-      {
-        "id": "US-011",
-        "title": "Calendar View Consolidation",
-        "status": "completed",
-        "completedInSession": true
-      },
-      {
-        "id": "US-012",
-        "title": "Fix Detail View Modal",
+        "id": "US-014",
+        "title": "Restore Calendar Views",
         "status": "open",
         "completedInSession": false
       },
       {
-        "id": "US-013",
-        "title": "Complete CSV Data Parsing & Display",
+        "id": "US-015",
+        "title": "Browser Verification Testing",
         "status": "open",
         "completedInSession": false
       }
     ]
   },
-  "iterations": [
-    {
-      "iteration": 1,
-      "status": "completed",
-      "taskId": "US-010",
-      "taskTitle": "Enhanced Guest User Experience",
-      "taskCompleted": true,
-      "durationMs": 227506,
-      "startedAt": "2026-01-16T15:43:23.324Z",
-      "endedAt": "2026-01-16T15:47:10.830Z"
-    },
-    {
-      "iteration": 2,
-      "status": "completed",
-      "taskId": "US-011",
-      "taskTitle": "Calendar View Consolidation",
-      "taskCompleted": true,
-      "durationMs": 405770,
-      "startedAt": "2026-01-16T15:47:11.843Z",
-      "endedAt": "2026-01-16T15:53:57.613Z"
-    }
-  ],
+  "iterations": [],
   "skippedTaskIds": [],
   "cwd": "/Users/marc/Documents/projects/calendariofiscal",
   "activeTaskIds": [
-    "US-012"
+    "US-014"
   ],
   "subagentPanelVisible": true
 }

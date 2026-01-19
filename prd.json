@@ -1,84 +1,32 @@
 {
-  "name": "Product Requirements Document - Calendario Fiscal Updates",
-  "description": "**As a** guest user **I want to** see all premium features in a disabled state with clear indicators **So that** I understand what functionality is available after registration",
-  "branchName": "feature/product-requirements-document-calendario-fiscal-updates",
+  "name": "Product Requirements Document: Restore Calendar Views",
+  "description": "- **Project**: Calendario Fiscal - **Document Version**: 1.0 - **Date**: 2026-01-19 - **Priority**: High - **Status**: Ready for Implementation",
+  "branchName": "feature/product-requirements-document-restore-calendar-views",
   "userStories": [
     {
-      "id": "US-010",
-      "title": "Enhanced Guest User Experience",
-      "description": "Enhanced Guest User Experience",
-      "acceptanceCriteria": [
-        "All premium features (filters, export, notifications, etc.) are visible but disabled for guests",
-        "Each disabled feature has a lock icon or similar visual indicator",
-        "Hovering/clicking disabled features shows a tooltip: \"Register to unlock this feature\"",
-        "The registration/login CTAs are prominently displayed",
-        "The UI clearly distinguishes between available and locked features",
-        "Mobile: tooltips work with tap gestures"
-      ],
+      "id": "US-014",
+      "title": "Restore Calendar Views",
+      "description": "Restore Calendar Views",
+      "acceptanceCriteria": [],
       "priority": 1,
-      "passes": true,
-      "labels": [],
-      "dependsOn": [],
-      "completionNotes": "Completed by agent"
-    },
-    {
-      "id": "US-011",
-      "title": "Calendar View Consolidation",
-      "description": "Calendar View Consolidation",
-      "acceptanceCriteria": [
-        "Remove \"Lista\" and \"Linea\" views from the interface",
-        "Keep only the \"Año\" (annual) calendar view as the default",
-        "Remove view switching UI elements (tabs/buttons/dropdowns)",
-        "Ensure the annual view is fully optimized and responsive",
-        "Update navigation and routing to reflect the single view",
-        "Migration: Users who had preferences for removed views default to annual view"
-      ],
-      "priority": 2,
-      "passes": true,
-      "labels": [],
-      "dependsOn": [],
-      "completionNotes": "Completed by agent"
-    },
-    {
-      "id": "US-012",
-      "title": "Fix Detail View Modal",
-      "description": "Fix Detail View Modal",
-      "acceptanceCriteria": [
-        "Clicking any calendar item opens a slide-over panel from the right",
-        "Panel displays all model details (number, description, deadline, period, etc.)",
-        "Panel includes close button (X) and clicking outside/ESC key closes it",
-        "Panel is responsive on mobile (full screen or bottom sheet)",
-        "Loading state shown while fetching details",
-        "Panel uses Flux Pro modal/slide-over components",
-        "Smooth open/close animations"
-      ],
-      "priority": 3,
       "passes": false,
       "labels": [],
       "dependsOn": []
     },
     {
-      "id": "US-013",
-      "title": "Complete CSV Data Parsing & Display",
-      "description": "Complete CSV Data Parsing & Display",
-      "acceptanceCriteria": [
-        "All 72 rows from the CSV are parsed and stored correctly",
-        "Each model displays: \"Start Date → Deadline Date (X days to complete)\"",
-        "Visual timeline/progress indicator shows the date range",
-        "CSV parsing handles all edge cases (empty fields, date formats, encoding)",
-        "Database migrations include fields for: period_start, period_end, days_to_complete",
-        "Display format is consistent across all views",
-        "Bulk parsing validated with tests"
-      ],
-      "priority": 4,
+      "id": "US-015",
+      "title": "Browser Verification Testing",
+      "description": "Browser Verification Testing",
+      "acceptanceCriteria": [],
+      "priority": 2,
       "passes": false,
       "labels": [],
       "dependsOn": []
     }
   ],
   "metadata": {
-    "createdAt": "2026-01-16T15:40:36.021Z",
+    "createdAt": "2026-01-19T08:48:46.336Z",
     "version": "1.0.0",
-    "updatedAt": "2026-01-16T15:53:58.621Z"
+    "updatedAt": "2026-01-19T08:48:52.852Z"
   }
 }

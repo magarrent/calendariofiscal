@@ -26,28 +26,27 @@
 
 ---
 
-### US-011: Calendar View Consolidation
-**As a** user  
-**I want to** use a single, optimized calendar view  
-**So that** I have a consistent and streamlined experience
+### US-011: Calendar View Cleanup - Remove Timeline View
+**As a** user
+**I want to** have the Timeline view removed from the calendar
+**So that** the interface is cleaner and focused on the most useful view types
 
 **Acceptance Criteria:**
-- Remove "Lista" and "Linea" views from the interface
-- Keep only the "Año" (annual) calendar view as the default
-- Remove view switching UI elements (tabs/buttons/dropdowns)
-- Ensure the annual view is fully optimized and responsive
-- Update navigation and routing to reflect the single view
-- Migration: Users who had preferences for removed views default to annual view
+- Remove "Linea" (Timeline) view from the interface
+- Keep ALL other existing calendar views functional
+- View switching UI no longer shows Timeline option
+- Default view remains "Año" (Year)
 
 **Technical Notes:**
-- Remove CalendarView Livewire components for lista/linea
-- Clean up routes for removed views
-- Update database if view preferences are stored
-- Remove related CSS/JS for removed views
-- Use Flux Pro components for the annual calendar UI
+- Remove timeline-view.blade.php component and related code
+- Update CalendarView Livewire component to remove timeline references
+- Clean up routes/navigation for removed timeline view
+- Ensure no broken references to timeline view
 
-**Priority:** Medium  
-**Estimated Effort:** Small (1-2 days)
+**Priority:** Medium
+**Estimated Effort:** Small (1 day)
+
+**Status:** ✅ Completed
 
 ---
 
@@ -102,8 +101,41 @@
 - Write tests for CSV parsing (all 72 rows)
 - Use Flux Pro badges/chips for visual timeline indicators
 
-**Priority:** High  
+**Priority:** High
 **Estimated Effort:** Medium (3-5 days)
+
+---
+
+### US-014: Restore All Calendar Views (Except Timeline)
+**As a** user
+**I want to** have ALL original calendar views available (except Timeline)
+**So that** I can view tax deadlines in any format that works best for me
+
+**Acceptance Criteria:**
+- Restore Day (Día) view - fully functional and responsive
+- Restore Week (Semana) view - fully functional and responsive
+- Restore Month (Mes) view - fully functional and responsive
+- Keep Year (Año) view - already functional
+- Restore List (Lista) view - fully functional and responsive
+- Timeline (Línea) view remains removed (per US-011)
+- View switching UI shows all 5 available views
+- Each view displays tax model data appropriately for its format
+- All views are responsive on mobile, tablet, and desktop
+- Default view remains "Año" (Year)
+
+**Technical Notes:**
+- Restore day-view.blade.php component (was deleted)
+- Restore week-view.blade.php component (was deleted)
+- Restore month-view.blade.php component (was deleted)
+- Restore list-view.blade.php component (was deleted)
+- Update CalendarView Livewire component to support all 5 views
+- Ensure proper data binding and event handling for each view
+- Use Flux Pro components consistently across all restored views
+- Test view switching between all 5 views
+- Verify mobile responsiveness for each view
+
+**Priority:** High
+**Estimated Effort:** Medium (3-4 days)
 
 ---
 

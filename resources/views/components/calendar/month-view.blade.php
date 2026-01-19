@@ -1,25 +1,14 @@
-<?php
+@props(['deadlines', 'currentDate'])
 
-use Livewire\Component;
-use Illuminate\Support\Collection;
+@php
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 
-new class extends Component
-{
-    public Collection $deadlines;
-    public Carbon $currentDate;
-
-    public function mount(Collection $deadlines, Carbon $currentDate): void
+if (!function_exists('getCalendarWeeksMonth')) {
+    function getCalendarWeeksMonth(Carbon $currentDate): array
     {
-        $this->deadlines = $deadlines;
-        $this->currentDate = $currentDate;
-    }
-
-    public function getCalendarWeeks(): array
-    {
-        $start = $this->currentDate->copy()->startOfMonth()->startOfWeek(Carbon::MONDAY);
-        $end = $this->currentDate->copy()->endOfMonth()->endOfWeek(Carbon::MONDAY);
+        $start = $currentDate->copy()->startOfMonth()->startOfWeek(Carbon::MONDAY);
+        $end = $currentDate->copy()->endOfMonth()->endOfWeek(Carbon::MONDAY);
 
         $weeks = [];
         $period = CarbonPeriod::create($start, '1 day', $end);
@@ -40,15 +29,19 @@ new class extends Component
 
         return $weeks;
     }
+}
 
-    public function getDeadlinesForDate(Carbon $date): Collection
+if (!function_exists('getDeadlinesForDateMonth')) {
+    function getDeadlinesForDateMonth($deadlines, Carbon $date)
     {
-        return $this->deadlines->filter(function ($deadline) use ($date) {
+        return $deadlines->filter(function ($deadline) use ($date) {
             return $deadline->deadline_date->isSameDay($date);
         });
     }
+}
 
-    public function getCategoryColor(string $category): string
+if (!function_exists('getCategoryColorMonth')) {
+    function getCategoryColorMonth(string $category): string
     {
         return match($category) {
             'iva' => 'bg-blue-500',
@@ -58,8 +51,24 @@ new class extends Component
             default => 'bg-gray-500',
         };
     }
-};
-?>
+}
+
+if (!function_exists('isModelCompletedMonth')) {
+    function isModelCompletedMonth(int $taxModelId, int $year): bool
+    {
+        if (!auth()->check()) {
+            return false;
+        }
+
+        return auth()->user()->hasCompletedModel(
+            \App\Models\TaxModel::find($taxModelId),
+            $year
+        );
+    }
+}
+
+$calendarWeeks = getCalendarWeeksMonth($currentDate);
+@endphp
 
 <div class="overflow-hidden">
     {{-- Weekday Headers --}}
@@ -73,12 +82,12 @@ new class extends Component
 
     {{-- Calendar Grid --}}
     <div class="grid grid-cols-7 gap-px bg-gray-200 dark:bg-gray-700">
-        @foreach($this->getCalendarWeeks() as $week)
+        @foreach($calendarWeeks as $week)
             @foreach($week as $date)
                 @php
-                    $isCurrentMonth = $date->month === $this->currentDate->month;
+                    $isCurrentMonth = $date->month === $currentDate->month;
                     $isToday = $date->isToday();
-                    $dayDeadlines = $this->getDeadlinesForDate($date);
+                    $dayDeadlines = getDeadlinesForDateMonth($deadlines, $date);
                 @endphp
 
                 <div class="min-h-[100px] bg-white p-2 dark:bg-gray-800 {{ !$isCurrentMonth ? 'opacity-40' : '' }}">
@@ -91,11 +100,20 @@ new class extends Component
                     @if($dayDeadlines->isNotEmpty())
                         <div class="space-y-1">
                             @foreach($dayDeadlines->take(3) as $deadline)
+                                @php
+                                    $taxModel = $deadline->taxModel;
+                                    $isCompleted = isModelCompletedMonth($taxModel->id, $currentDate->year);
+                                @endphp
                                 <div
-                                    wire:click="$parent.showModel({{ $deadline->taxModel->id }})"
-                                    class="cursor-pointer rounded px-2 py-1 text-xs transition hover:opacity-80 {{ $this->getCategoryColor($deadline->taxModel->category ?? 'otros') }} text-white"
+                                    wire:click="showModel({{ $taxModel->id }})"
+                                    class="cursor-pointer rounded px-2 py-1 text-xs transition hover:opacity-80 {{ $isCompleted ? 'bg-green-600' : getCategoryColorMonth($taxModel->category ?? 'otros') }} text-white"
                                 >
-                                    {{ $deadline->taxModel->model_number }}
+                                    <div class="flex items-center justify-between gap-1">
+                                        <span>{{ $taxModel->model_number }}</span>
+                                        @if($isCompleted)
+                                            <flux:icon.check class="size-3" />
+                                        @endif
+                                    </div>
                                 </div>
                             @endforeach
 

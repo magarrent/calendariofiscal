@@ -35,23 +35,86 @@
                 @if($model->deadlines->isNotEmpty())
                     <div>
                         <flux:heading size="lg" class="mb-3">Plazos de presentación</flux:heading>
-                        <div class="space-y-2">
+                        <div class="space-y-3">
                             @foreach($model->deadlines->sortBy('deadline_date') as $deadline)
-                                <div class="flex items-center justify-between rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-                                    <div>
-                                        <flux:text class="font-semibold">
-                                            {{ $deadline->deadline_date->translatedFormat('d F Y') }}
+                                <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                                    {{-- Period Description --}}
+                                    @if($deadline->period_description)
+                                        <flux:text size="sm" class="mb-2 font-medium text-gray-600 dark:text-gray-400">
+                                            {{ $deadline->period_description }}
                                         </flux:text>
-                                        @if($deadline->deadline_time)
-                                            <flux:text size="sm" class="text-gray-500">
-                                                Hora límite: {{ $deadline->deadline_time->format('H:i') }}
-                                            </flux:text>
+                                    @endif
+
+                                    {{-- Main Date Range Display --}}
+                                    <div class="mb-3 flex items-center justify-between">
+                                        <div class="flex-1">
+                                            @if($deadline->period_start && $deadline->period_end)
+                                                <flux:text class="font-semibold text-gray-900 dark:text-white">
+                                                    {{ $deadline->period_start->translatedFormat('d M Y') }} → {{ $deadline->period_end->translatedFormat('d M Y') }}
+                                                </flux:text>
+                                                <flux:text size="sm" class="text-gray-600 dark:text-gray-400">
+                                                    ({{ $deadline->days_to_complete }} {{ $deadline->days_to_complete === 1 ? 'día' : 'días' }} para completar)
+                                                </flux:text>
+                                            @else
+                                                <flux:text class="font-semibold text-gray-900 dark:text-white">
+                                                    {{ $deadline->deadline_date->translatedFormat('d F Y') }}
+                                                </flux:text>
+                                            @endif
+
+                                            @if($deadline->deadline_time)
+                                                <flux:text size="sm" class="text-gray-500">
+                                                    Hora límite: {{ $deadline->deadline_time->format('H:i') }}
+                                                </flux:text>
+                                            @endif
+                                        </div>
+
+                                        {{-- Status Badge --}}
+                                        @if($deadline->deadline_date->isPast())
+                                            <flux:badge variant="danger" size="sm">Vencido</flux:badge>
+                                        @elseif($deadline->deadline_date->diffInDays(now()) <= 7)
+                                            <flux:badge variant="warning" size="sm">Próximo</flux:badge>
                                         @endif
                                     </div>
-                                    @if($deadline->deadline_date->isPast())
-                                        <flux:badge variant="danger" size="sm">Vencido</flux:badge>
-                                    @elseif($deadline->deadline_date->diffInDays(now()) <= 7)
-                                        <flux:badge variant="warning" size="sm">Próximo</flux:badge>
+
+                                    {{-- Visual Timeline --}}
+                                    @if($deadline->period_start && $deadline->period_end && $deadline->days_to_complete > 0)
+                                        <div class="relative">
+                                            {{-- Progress Bar Background --}}
+                                            <div class="h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                                                @php
+                                                    $now = now();
+                                                    $totalDays = $deadline->days_to_complete;
+                                                    $elapsedDays = max(0, min($totalDays, $deadline->period_start->diffInDays($now)));
+                                                    $progressPercent = $totalDays > 0 ? ($elapsedDays / $totalDays) * 100 : 0;
+                                                    $progressPercent = min(100, max(0, $progressPercent));
+
+                                                    // Determine color based on progress
+                                                    $colorClass = match(true) {
+                                                        $progressPercent >= 90 => 'bg-red-500',
+                                                        $progressPercent >= 70 => 'bg-orange-500',
+                                                        $progressPercent >= 50 => 'bg-yellow-500',
+                                                        default => 'bg-green-500'
+                                                    };
+                                                @endphp
+
+                                                {{-- Progress Bar Fill --}}
+                                                <div class="h-full {{ $colorClass }} transition-all duration-500" style="width: {{ $progressPercent }}%"></div>
+                                            </div>
+
+                                            {{-- Timeline Labels --}}
+                                            <div class="mt-1 flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                                                <span>Inicio</span>
+                                                <span>{{ number_format($progressPercent, 0) }}%</span>
+                                                <span>Fin</span>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    {{-- Notes --}}
+                                    @if($deadline->notes)
+                                        <flux:text size="sm" class="mt-2 text-gray-600 dark:text-gray-400">
+                                            {{ $deadline->notes }}
+                                        </flux:text>
                                     @endif
                                 </div>
                             @endforeach
